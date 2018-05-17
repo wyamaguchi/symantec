@@ -1,0 +1,582 @@
+#%RAML 0.8
+---
+title: Symantec RESTful API
+baseUri: http://localhost:8081/3pl_api/{version}
+version: v1
+
+/pickReleaseOrders:
+  get: 
+    description: Returns orders marked "Pick Release" to the caller - with pagination
+                 Returned records marked as 'SENT'
+    queryParameters:
+      SOURCE:
+        required: true
+      INVENTORY_ORG_CODE:
+        required: true
+      DELIVERY_NUMBERS:
+      PRODUCT_GROUP:
+        required: true
+      #removed in spec v1.2 - not needed?
+      #STATUS:
+      #
+    responses:
+      200:
+        description: Successful call
+        body:
+          application/json:
+            example: |
+              {
+                "ORDERS": [ {
+                    "DELIVERY_NUMBER": "12870311",
+                    "ACCOUNT_NUMBER": "46065",
+                    "ORDER_NUMBER": "19856550",
+                    "ORDER_STATUS": "1",
+                    "SHIPMENT_PRIORITY": "STD",
+                    "CUSTOMER_PO_NUMBER": "20-P1-395462",
+                    "ORDERED_DATE": "4/12/2018",
+                    "SHIPPING_INSTRUCTIONS": "SEE ROUTING RULES FOR VARIOUS LOCATIONS",
+                    "PACKING_INSTRUCTIONS": "PLEASE SHIP ALL ORDERS VIA TNT GLOBAL",
+                    "CONSIGNEE_FIRSTNAME": "ARIELLE",
+                    "CONSIGNEE_LASTNAME": "FLENDER",
+                    "CONSIGNEE_ATTN": "mdiaz@symantec.com",
+                    "CONSIGNEE_NUMBER": "2187030",
+                    "CONSIGNEE_COMPANY": "SYMANTEC MEXICO",
+                    "CONSIGNEE_ADD1": "BATALLON DE SAN PATRICIO 111",
+                    "CONSIGNEE_ADD2": "PISO 8 DEPTO 4",
+                    "CONSIGNEE_ADD3": "XXXX",
+                    "CONSIGNEE_ADD4": "ZIP 66269",
+                    "CONSIGNEE_CITY": "WASHINGTON",
+                    "CONSIGNEE_STATE": "NJ",
+                    "PROVINCE": "NLG-AMSTERDAM",
+                    "CONSIGNEE_ZIPCODE": "64710",
+                    "CONSIGNEE_COUNTRYCODE": "US",
+                    "CONSIGNEE_PHONE": "0115511-30487500",
+                    "SHIP_TO_MAILSTOP": "LCUN-3Y8M45",
+                    "BILLTO_CONTACT_FIRSTNAME": "ARIELLE",
+                    "BILLTO_CONTACT_LASTNAME": "FLENDER",
+                    "BILTO_ATTN": "mdiaz@symantec.com",
+                    "BILLTO_CUSTOMER_NUMBER": "2187030",
+                    "BILLTO_COMPANY": "SYMANTEC MEXICO",
+                    "BILLTO_ADD1": "BATALLON DE SAN PATRICIO 111",
+                    "BILLTO_ADD2": "PISO 8 DEPTO 4",
+                    "BILLTO_ADD3": "XXXX",
+                    "BILLTO_ADD4": "ZIP 66269",
+                    "BILLTO_CITY": "WASHINGTON",
+                    "BILLTO_STATE": "NJ",
+                    "BILLTO_PROVINCE": "NLG-AMSTERDAM",
+                    "BILLTO_ZIPCODE": "64710",
+                    "BILLTO_COUNTRYCODE": "US",
+                    "BILLTO_CONTACT_PHONE": "0115511-30487500",
+                    "BILLTO_MAILSTOP": "LCUN-3Y8M45",
+                    "FREIGHT_ACCOUNT": "46065",
+                    "SHIP_VIA": "FEDEX",
+                    "SHIP_TYPE": "GROUND",
+                    "SIC_CODE": "99",
+                    "INT_DECLARED_VALUE": "100",
+                    "SUB_TOTAL": "124.76",
+                    "SHIP_HANDLING": "0",
+                    "SALES_TAX": "86.29",
+                    "TOTAL_DUE": "124.76",
+                    "AMOUNT_PAID": "124.76",
+                    "NET_DUE": "124.76",
+                    "BALANCE_DUE_US": "50.53",
+                    "PAYMENT_TYPE": "Credit Card",
+                    "PAYMENT_TERMS": "Net Due in 270 Days",
+                    "INCO_TERMS": "FACTORY",
+                    "PACK_LIST_TYPE": "107",
+                    "FREIGHT_TERMS_CODE": "PREPAY AND ADD",
+                    "SHIP_METHOD_CODE": "FEDEX GROUND",
+                    "ENDUSER_FIRSTNAME": "ARIELLE",
+                    "ENDUSER_LASTNAME": "FLENDER",
+                    "ENDUSER_CUSTOMER_ATTN": "mdiaz@symantec.com",
+                    "ENDUSER_CUSTOMER_NUMBER": "2187030",
+                    "ENDCUSTOMER_NAME": "SYMANTEC MEXICO",
+                    "ENDCUSTOMER_ADD1": "BATALLON DE SAN PATRICIO 111",
+                    "ENDCUSTOMER_ADD2": "PISO 8 DEPTO 4",
+                    "ENDCUSTOMER_ADD3": "XXXX",
+                    "ENDCUSTOMER_ADD4": "ZIP 66269",
+                    "ENDCUSTOMER_CITY": "WASHINGTON",
+                    "ENDCUSTOMER_STATE": "NJ",
+                    "ENDCUSTOMER_ZIP": "64710",
+                    "ENDCUSTOMER_COUNTRY": "Canada",
+                    "ENDUSER_PHONE": "780-6623603",
+                    "CURRENCY_CODE": "USD",
+                    "ORG_ID": "7",
+                    "INVENTORY_ORG_CODE": "US",
+                    "ORDER_TYPE": "STANDARD ORDER",
+                    "IMPORTER_OF_RECORD": "Symantec  Corporation GST#128013208",
+                    "COMMENTS": "This can be any value",
+                    "INV_ORGANIZATION_ID": "7",
+                    "SHIP_TO_LOCATION_ID": "",
+                    "CONSOLIDATE_SHIPMENTS": "Y",
+                    "LINES": [
+                      {
+                        "DELIVERY_NUMBER": "12870311",
+                        "DELIVERY_LINE_DETAIL_ID": "1654646",
+                        "ORDER_NUMBER": "19856550",
+                        "ORDER_LINE_NUMBER": "1",
+                        "ORDER_LINE_ID": "2066788",
+                        "PART_NUMBER": "10248702-LA",
+                        "DESCRIPTION_SHORT": "PROCOMM PLUS",
+                        "DESCRIPTION_LONG": "*FUNCTION CROSSGRADE - RAPTOR FIREWALL HOT SPARE TO SYMANTEC ENTERPRISE FIREWALL 6.5 WIN NT/2000 3DES EDUCATIONAL UNLIMITED USERS",
+                        "QUANTITY": "4",
+                        "PRICE": "15.98",
+                        "EXTENDED_PRICE": "15.98",
+                        "CURRENCY_CODE": "US",
+                        "DON'T_SHIP_BEFORE": "04/12/2018",
+                        "SHIP_BY_DATE": "04/12/2018",
+                        "SHIPMENT_PRIORITY": "STD",
+                        "SHIP_METHOD_CODE": "FEDEX GROUND",
+                        "SHIPPING_INSTRUCTIONS": "SEE ROUTING RULES FOR VARIOUS LOC.",
+                        "PACKING_INSTRUCTIONS": "PLS SHIP ALL ORDERS VIA TNT GLOBAL ",
+                        "CDS_PER_ITEM": "9",
+                        "MANUALS_PER_ITEM": "1",
+                        "HARDWARE_PER_ITEM": "0",
+                        "DVD_PER_ITEM": "0",
+                        "CD_COST_PER_ITEM": "106",
+                        "MANUAL_COST_PER_ITEM": "337",
+                        "HARDWARE_COST_PER_ITEM": "13655",
+                        "DVD_COST_PER_ITEM": "0",
+                        "EC_HTS": "8517509000",
+                        "EC_HTS_SHIP_TO": "8524310011",
+                        "EC_ECCN_US": "5D992.b.1.",
+                        "EC_CCATS_US": "G022250",
+                        "EC_MOPS": "XKC33317",
+                        "EC_LICENSE_CODE_US": "ENC",
+                        "EC_LICENSE_NUMBER_US": "ENC",
+                        "EC_LICENSE_EXPIRATION_DATE_US": "12-APR-2018",
+                        "LICENSE_EXCEPTION": "XXXXX",
+                        "EC_HTS_SHIP_TO_APAC": "85243190",
+                        "EC_ECCN_APAC": "DL05D01C",
+                        "EC_CCATS_APAC": "XXXX",
+                        "EC_LICENSE_NUMBER_APAC": "BUP/061103/Symantec/15",
+                        "EC_LICENSE_EXPIRATION_DATE_APAC": "04-NOV-07",
+                        "LICENSE_EXCEPTION_APAC": "XXXX",
+                        "COUNTRY_OF_MFG_ORIGIN_APAC": "XXXX",
+                        "INV_ORG_CODE": "US",
+                        "OPERATING_UNIT_ID": "7",
+                        "INV_ORGANIZATION_ID": "7",
+                        "SUBINVENTORY": "SHIPSTAGE",
+                        "COMMENTS": "Y,001.233K01.ENG",
+                        "LINE_NOTE": "UL1038-A05",
+                        "ORDER_LINE_UNIT_OF_MEASURE": "EA",
+                        "EC_LICENSE_CODE_APAC": "ENC",
+                        "SINGAPORE_IMPORT_LICENSE_NO": "XXX",
+                        "INDONESIAN_REGISTRATION_NO": "N",
+                        "DISTRIBUTOR_PO_NUMBER": "HK20061127",
+                        "RESELLER_PO_NUMBER": "VG10250014",
+                        "BUNDLE_SKU_PART_NO": "10248702-LA",
+                        "BUNDLE_SKU_DESCRIPTION_SHORT": "PROCOMM PLUS",
+                        "BUNDLE_SKU_DESCRITPITON_LONG": "*FUNCTION CROSSGRADE - RAPTOR FIREWALL HOT SPARE TO SYMANTEC ENTERPRISE FIREWALL 6.5 WIN NT/2000 3DES EDUCATIONAL UNLIMITED USERS",
+                        "SHIP_SET": "1",
+                        "HONGKONG_REGISTRATION_NO": "5D002",
+                        "MALAYSIA_REGISTRATION_NO": "On File",
+                        "EC_ECLN_IE": "ECL99"
+                      },
+                      {
+                        "DELIVERY_NUMBER": "12870311",
+                        "DELIVERY_LINE_DETAIL_ID": "1654646",
+                        "ORDER_NUMBER": "19856550",
+                        "ORDER_LINE_NUMBER": "1",
+                        "ORDER_LINE_ID": "2066788",
+                        "PART_NUMBER": "10248702-LA",
+                        "DESCRIPTION_SHORT": "PROCOMM PLUS",
+                        "DESCRIPTION_LONG": "*FUNCTION CROSSGRADE - RAPTOR FIREWALL HOT SPARE TO SYMANTEC ENTERPRISE FIREWALL 6.5 WIN NT/2000 3DES EDUCATIONAL UNLIMITED USERS",
+                        "QUANTITY": "4",
+                        "PRICE": "15.98",
+                        "EXTENDED_PRICE": "15.98",
+                        "CURRENCY_CODE": "US",
+                        "DON’T_SHIP_BEFORE": "04/12/2018",
+                        "SHIP_BY_DATE": "04/12/2018",
+                        "SHIPMENT_PRIORITY": "STD",
+                        "SHIP_METHOD_CODE": "FEDEX GROUND",
+                        "SHIPPING_INSTRUCTIONS": "SEE ROUTING RULES FOR VARIOUS LOC.",
+                        "PACKING_INSTRUCTIONS": "PLS.SHIP ALL ORDERS VIA TNT GLOBAL ",
+                        "CDS_PER_ITEM": "9",
+                        "MANUALS_PER_ITEM": "1",
+                        "HARDWARE_PER_ITEM": "0",
+                        "DVD_PER_ITEM": "0",
+                        "CD_COST_PER_ITEM": "106",
+                        "MANUAL_COST_PER_ITEM": "337",
+                        "HARDWARE_COST_PER_ITEM": "13655",
+                        "DVD_COST_PER_ITEM": "0",
+                        "EC_HTS": "8517509000",
+                        "EC_HTS_SHIP_TO": "8524310011",
+                        "EC_ECCN_US": "5D992.b.1.",
+                        "EC_CCATS_US": "G022250",
+                        "EC_MOPS": "XKC33317",
+                        "EC_LICENSE_TYPE/CODE_US": "ENC",
+                        "EC_LICENSE_NUMBER_US": "ENC",
+                        "EC_LICENSE_EXPIRATION_DATE_US": "12-APR-2018",
+                        "LICENSE_EXCEPTION": "XXXXX",
+                        "EC_HTS_SHIP_TO_APAC": "85243190",
+                        "EC_ECCN_APAC": "DL05D01C",
+                        "EC_CCATS_APAC": "XXXX",
+                        "EC_LICENSE_NUMBER_APAC": "BUP/061103/Symantec/15",
+                        "EC_LICENSE_EXPIRATION_DATE_APAC": "04-NOV-07",
+                        "LICENSE_EXCEPTION_APAC": "XXXX",
+                        "COUNTRY_OF_MANUFACTURING_ORIGIN_APAC": "XXXX",
+                        "INV_ORG_CODE": "US",
+                        "OPERATING_UNIT_ID": "7",
+                        "INV_ORGANIZATION_ID": "7",
+                        "SUBINVENTORY": "SHIPSTAGE",
+                        "COMMENTS": "Y,001.233K01.ENG",
+                        "LINE_NOTE": "UL1038-A05",
+                        "ORDER_LINE_UNIT_OF_MEASURE": "EA",
+                        "EC_LICENSE_CODE_APAC": "ENC",
+                        "SINGAPORE_IMPORT_LICENSE_NUMBER": "XXX",
+                        "INDONESIAN_REGISTRATION_NUMBER": "N",
+                        "DISTRIBUTOR_PO_NUMBER": "HK20061127",
+                        "RESELLER_PO_NUMBER": "VG10250014",
+                        "BUNDLE_SKU_PART_NUMBER": "10248702-LA",
+                        "BUNDLE_SKU_DESCRIPTION_SHORT": "PROCOMM PLUS ",
+                        "BUNDLE_SKU_DESCRITPITON_LONG": "*FUNCTION CROSSGRADE - RAPTOR FIREWALL HOT SPARE TO SYMANTEC ENTERPRISE FIREWALL 6.5 WIN NT/2000 3DES EDUCATIONAL UNLIMITED USERS",
+                        "SHIP_SET": "1",
+                        "HONGKONG_REGISTRATION_NO": "5D002",
+                        "MALAYSIA_REGISTRATION_NO": "On File",
+                        "EC_ECLN_IE": "ECL99"
+                      }
+                    ]  
+                  }
+                ],
+                "IS_LAST_PAGE": "N",
+              }
+      400: 
+        description: Invalid input request
+        body:
+          application/json:
+            example: |
+              {
+                "message": "400 Bad request"
+              }
+      500:
+        description: Server processing error
+        body:
+          application/json:
+            example: |
+              {
+                "message": "500 Server error"
+              }
+       
+/purchaseOrders:
+  get:
+    description: Returns purchase orders marked "Ready" to the caller - with pagination
+                 Returned records marked as "sent"
+    queryParameters:
+      SOURCE:
+        required: true
+      PRODUCT_GROUP:
+        required: true
+      PO_NUMBERS:
+    responses:
+      200:
+        description: Successful call
+        body:
+          application/json:
+            example: |
+              {   
+                "PURCHASE_ORDERS": [
+                  {  
+                    "PO_HEADER_ID": 157765,
+                    "PO_NUMBER": "1032652",
+                    "PO_REVISION_NUM": 1,
+                    "PO_HEADER_TYPE": "STANDARD",
+                    "VENDOR_NAME": "DISCOPY LABS",
+                    "BUYER_NAME": "SWAN,JEFF D",
+                    "AUTHORIZATION_STATUS": "APPROVED",
+                    "PO_DATE": "2/14/2005  11:18:05 AM",
+                    "VENDOR_SITE": "ACH-ONTARIO",
+                    "CURRENCY_CODE": "USD",
+                    "COMMENTS": "Only print DRM keys when new orders are booked",
+                    "CANCEL_FLAG": "N",
+                    "CLOSED_CODE": "OPEN",
+                    "PO_LINES": [
+                      {
+                        "PO_HEADER_ID": 157765,
+                        "PO_NUMBER": "1032652",
+                        "PO_REVISION_NUM": 1,
+                        "PO_LINE_ID": 336487,
+                        "PO_LINE_NUM": 1,
+                        "PO_LINE_TYPE": "Goods",
+                        "ITEM_NO": "10351194",
+                        "ITEM_DESCRIPTION": "NIS 2005 DELL OEM DRM STICKER J9226",
+                        "UOM_CODE": "EACH",
+                        "QUANTITY": 300000,
+                        "UNIT_PRICE": 0.15,
+                        "DELIVERY_DATE": "2/28/2005",
+                        "EXTENDED_PRICE": 45000,
+                        "TAXABLE_FLAG": "N",
+                        "NOTE_TO_VENDOR": "This is Note To Vendor",
+                        "SUBINVENTORY_CODE": "STK17",
+                        "CANCEL_FLAG": "N",
+                        "CLOSED_CODE": "OPEN"
+                      },
+                      {
+                        "PO_HEADER_ID": 157765,
+                        "PO_NUMBER": "1032652",
+                        "PO_REVISION_NUM": 1,
+                        "PO_LINE_ID": 336487,
+                        "PO_LINE_NUM": 1,
+                        "PO_LINE_TYPE": "Goods",
+                        "ITEM_NO": "10351194",
+                        "ITEM_DESCRIPTION": "NIS 2005 DELL OEM DRM STICKER J9226",
+                        "UOM_CODE": "EACH",
+                        "QUANTITY": 300000,
+                        "UNIT_PRICE": 0.15,
+                        "DELIVERY_DATE": "2/28/2005",
+                        "EXTENDED_PRICE": 45000,
+                        "TAXABLE_FLAG": "N",
+                        "NOTE_TO_VENDOR": "This is Note To Vendor",
+                        "SUBINVENTORY_CODE": "STK17",
+                        "CANCEL_FLAG": "N",
+                        "CLOSED_CODE": "OPEN"
+                      }
+                    ]
+                  }
+                ],
+                "IS_LAST_PAGE":"Y",
+              }
+              
+      400: 
+        description: Invalid input request
+        body:
+          application/json:
+            example: |
+              {
+                "message": "400 Bad request"
+              }
+      500:
+        description: Server processing error
+        body:
+          application/json:
+            example: |
+              {
+                "message": "500 Server error"
+              }
+/RMAOrders:
+  get:
+    description: Returns RMAs to the caller - with pagination
+    queryParameters:
+      SOURCE:
+        required: true
+      INVENTORY_ORG_CODE:
+        required: true
+      PRODUCT_GROUP:
+        required: true
+      RMA_ORDER_NUMBERS:
+    responses:
+      200:
+        description: Successful call
+        body:
+          application/json:
+            example: |
+              {  
+                "RMAS": [
+                  {
+                    "ORGANIZATION_CODE": "FG1",
+                    "SUBINVENTORY_CODE": "FG1",
+                    "REC_FRM_NAME": "NAME",
+                    "REC_FRM_ADDRESS1": "ADDR",
+                    "REC_FRM_ADDRESS2": "ADDR2",
+                    "REC_FRM_CITY": "CITY",
+                    "REC_FRM_STATE": "STATE",
+                    "REC_FRM_ZIP": "ZIP",
+                    "REC_FRM_COUNTRY": "COUNTRY",
+                    "REC_FRM_PHONE": "NUM",
+                    "REC_FRM_EMAIL": "EMAIL",
+                    "RMA_ORDER_NUM": "77234",
+                    "RMA_ORDER_LINE_NUM": "94",
+                    "RMA_ORDER_HEADER_ID": 7234,
+                    "RMA_ORDER_LINE_ID": 083455,
+                    "ITEM_NUMBER": "357824",
+                    "ITEM_DESCRIPTION": "DESCRIPTION",
+                    "QUANTITY": 1,
+                    "REQUEST_DATE": "6/20/2011",
+                    "LINE_TRANSACTION_TYPE": "TYPE",
+                    "3PL_ACCOUNT_NUMBER": "9093",
+                    "JHASH_NUMBER": "5679224",
+                    "COMMODIDTY_CODE": "835"
+                  },
+                  {
+                    "ORGANIZATION_CODE": "FG1",
+                    "SUBINVENTORY_CODE": "FG1",
+                    "REC_FRM_NAME": "NAME",
+                    "REC_FRM_ADDRESS1": "ADDR",
+                    "REC_FRM_ADDRESS2": "ADDR2",
+                    "REC_FRM_CITY": "CITY",
+                    "REC_FRM_STATE": "STATE",
+                    "REC_FRM_ZIP": "ZIP",
+                    "REC_FRM_COUNTRY": "COUNTRY",
+                    "REC_FRM_PHONE": "NUM",
+                    "REC_FRM_EMAIL": "EMAIL",
+                    "RMA_ORDER_NUM": "77234",
+                    "RMA_ORDER_LINE_NUM": "94",
+                    "RMA_ORDER_HEADER_ID": 7234,
+                    "RMA_ORDER_LINE_ID": 083455,
+                    "ITEM_NUMBER": "357824",
+                    "ITEM_DESCRIPTION": "DESCRIPTION",
+                    "QUANTITY": 1,
+                    "REQUEST_DATE": "6/20/2011",
+                    "LINE_TRANSACTION_TYPE": "TYPE",
+                    "3PL_ACCOUNT_NUMBER": "9093",
+                    "JHASH_NUMBER": "5679224",
+                    "COMMODIDTY_CODE": "835"
+                  }
+                ],
+                "IS_LAST_PAGE": "Y"
+              }
+      400: 
+        description: Invalid input request
+        body:
+          application/json:
+            example: |
+              {
+                "message": "400 Bad request"
+              }
+      500:
+        description: Server processing error
+        body:
+          application/json:
+            example: |
+              {
+                "message": "500 Server error"
+              }
+
+/PRORequests:
+  get:
+    description: Returns Pick Release Order Request info
+    queryParameters:
+    responses:
+      200:
+        description: Successful call
+        body:
+          application/json:
+            example: |
+              {  
+                "REQUEST_ID": "text",
+                "QUERY_PARAMS": "text",
+                "REQUEST_SOURCE": "text",
+                "TIMESTAMP": "text"
+              }
+      400: 
+        description: Invalid input request
+        body:
+          application/json:
+            example: |
+              {
+                "message": "400 Bad request"
+              }
+      500:
+        description: Server processing error
+        body:
+          application/json:
+            example: |
+              {
+                "message": "500 Server error"
+              }    
+             
+/PRORequestsLogging:
+  get:
+    description: Returns Pick Release Order Request Logging info
+    queryParameters:
+    responses:
+      200:
+        description: Successful call
+        body:
+          application/json:
+            example: |
+              {  
+                "REQUEST_ID": "text",
+                "QUERY_PARAMS": "text",
+                "REQUEST_SOURCE": "text",
+                "TIMESTAMP": "text"
+              }
+      400: 
+        description: Invalid input request
+        body:
+          application/json:
+            example: |
+              {
+                "message": "400 Bad request"
+              }
+      500:
+        description: Server processing error
+        body:
+          application/json:
+            example: |
+              {
+                "message": "500 Server error"
+              }
+         
+/PRORequestFailures:
+  get:
+    description: Returns Pick Release Order Request Failures Logging info
+    queryParameters:
+    responses:
+      200:
+        description: Successful call
+        body:
+          application/json:
+            example: |
+              {
+                "http_status_code": "500",
+                "exception_class": "org.mule.routing.CompositeRoutingException",
+                "exception_message": "message goes here",
+                "request_method": "text",
+                "request_path": "more text",
+                "query_params": "even more text"
+              }
+      400: 
+        description: Invalid input request
+        body:
+          application/json:
+            example: |
+              {
+                "message": "400 Bad request"
+              }
+      500:
+        description: Server processing error
+        body:
+          application/json:
+            example: |
+              {
+                "message": "500 Server error"
+              }   
+              
+/RequestFailures:
+  get:
+    description: Returns Request Failures Logging info
+    queryParameters:
+    responses:
+      200:
+        description: Successful call
+        body:
+          application/json:
+            example: |
+              {
+                "request_id": "text",
+                "http_status_code": "text",
+                "exception_class": "text",
+                "exception_message": "text",
+                "request_method": "text",
+                "request_path": "text",
+                "request_source": "text",
+                "query_params": "text",
+                "timestamp": "text"
+              }
+      400: 
+        description: Invalid input request
+        body:
+          application/json:
+            example: |
+              {
+                "message": "400 Bad request"
+              }
+      500:
+        description: Server processing error
+        body:
+          application/json:
+            example: |
+              {
+                "message": "500 Server error"
+              }                             
