@@ -233,7 +233,7 @@ WHERE ord.order_id = ordl.order_number]]></db:parameterized-query>
                 <cassandradb:insert config-ref="CassandraDB__Configuration" keyspaceName="ultimo" table="pr_orders_requests_logging" doc:name="CassandraDB"/>
             </async>
         </scatter-gather>
-        <exception-strategy ref="PickReleaseOrders_Exception_Strategy" doc:name="Copy_of_Reference Exception Strategy"/>
+        <exception-strategy ref="PickReleaseOrders_Exception_Strategy" doc:name="Reference Exception Strategy"/>
 
     </flow>
     <flow name="get:/PRORequestFailures:symantecrest-config">
