@@ -1,0 +1,11 @@
+{
+  "request_id": "text",
+  "http_status_code": "text",
+  "exception_class": "text",
+  "exception_message": "text",
+  "request_method": "text",
+  "request_path": "text",
+  "request_source": "text",
+  "query_params": "text",
+  "timestamp": "text"
+}
