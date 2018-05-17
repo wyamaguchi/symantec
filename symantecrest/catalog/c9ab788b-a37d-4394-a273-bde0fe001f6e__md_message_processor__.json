@@ -1,0 +1,11 @@
+{
+    "inputMessageMetadata": {},
+    "outputMessageMetadata": {
+        "messagePayload": {
+            "connectorName": "CassandraDB__Configuration",
+            "typeId": "pr_orders_requests"
+        }
+    },
+    "id": "c9ab788b-a37d-4394-a273-bde0fe001f6e",
+    "version": "5.2.0.0"
+}
