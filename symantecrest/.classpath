@@ -10,5 +10,7 @@
 	<classpathentry kind="src" path="src/main/api"/>
 	<classpathentry kind="src" path="src/main/wsdl"/>
 	<classpathentry kind="src" path="src/test/munit"/>
+	<classpathentry kind="lib" path="ojdbc6.jar"/>
+	<classpathentry kind="con" path="MULE_LIB/CassandraDB/org.mule.tooling.ui.contribution.cassandradb.3.6.0"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

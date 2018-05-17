@@ -1,24 +1,239 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:apikit="http://www.mulesoft.org/schema/mule/apikit" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:spring="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
-http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+<mule xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw" xmlns:metadata="http://www.mulesoft.org/schema/mule/metadata" xmlns:cassandradb="http://www.mulesoft.org/schema/mule/cassandradb" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:json="http://www.mulesoft.org/schema/mule/json" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/apikit" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:spring="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
-http://www.mulesoft.org/schema/mule/apikit http://www.mulesoft.org/schema/mule/apikit/current/mule-apikit.xsd">
-    <http:listener-config xmlns:http="http://www.mulesoft.org/schema/mule/http" name="symantecrest-httpListenerConfig" host="0.0.0.0" port="8081" doc:name="HTTP Listener Configuration"/>
-    <apikit:config xmlns:apikit="http://www.mulesoft.org/schema/mule/apikit" name="symantecrest-config" raml="symantecrest.raml" consoleEnabled="false" doc:name="Router"/>
+http://www.mulesoft.org/schema/mule/apikit http://www.mulesoft.org/schema/mule/apikit/current/mule-apikit.xsd
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd
+http://www.mulesoft.org/schema/mule/cassandradb http://www.mulesoft.org/schema/mule/cassandradb/current/mule-cassandradb.xsd
+http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd">
+    <http:listener-config name="symantecrest-httpListenerConfig" host="0.0.0.0" port="8081" doc:name="HTTP Listener Configuration"/>
+    <apikit:config name="symantecrest-config" raml="symantecrest.raml" consoleEnabled="false" doc:name="Router"/>
+    <db:oracle-config name="Oracle_Configuration" host="localhost" port="1521" instance="orcl.william.com" user="ultimo" password="temp1234" doc:name="Oracle Configuration"/>
+    <cassandradb:config name="CassandraDB__Configuration" keyspace="ultimo" doc:name="CassandraDB: Configuration"/>
     <flow name="symantecrest-main">
-        <http:listener xmlns:http="http://www.mulesoft.org/schema/mule/http" config-ref="symantecrest-httpListenerConfig" path="/api/*" doc:name="HTTP"/>
-        <apikit:router xmlns:apikit="http://www.mulesoft.org/schema/mule/apikit" config-ref="symantecrest-config" doc:name="APIkit Router"/>
+        <http:listener config-ref="symantecrest-httpListenerConfig" path="/3pl_api/v1/*" doc:name="HTTP"/>
+        <message-properties-transformer scope="session" doc:name="Generate RequestID Timestamp and record other SessionVars">
+            <add-message-property key="request_id" value="#[java.util.UUID.randomUUID()]"/>
+            <add-message-property key="timestamp" value="#[server.dateTime.toString()]"/>
+            <add-message-property key="request_method" value="#[message.inboundProperties.'http.method']"/>
+            <add-message-property key="request_path" value="#[message.inboundProperties.'http.request.path']"/>
+            <add-message-property key="query_params" value="#[message.inboundProperties.'http.query.string']"/>
+            <add-message-property key="request_source" value="#[message.inboundProperties.'http.query.params'.SOURCE]"/>
+        </message-properties-transformer>
+        <apikit:router config-ref="symantecrest-config" doc:name="APIkit Router"/>
         <exception-strategy ref="symantecrest-apiKitGlobalExceptionMapping" doc:name="Reference Exception Strategy"/>
     </flow>
     <flow name="symantecrest-console">
-        <http:listener xmlns:http="http://www.mulesoft.org/schema/mule/http" config-ref="symantecrest-httpListenerConfig" path="/console/*" doc:name="HTTP"/>
-        <apikit:console xmlns:apikit="http://www.mulesoft.org/schema/mule/apikit" config-ref="symantecrest-config" doc:name="APIkit Console"/>
+        <http:listener config-ref="symantecrest-httpListenerConfig" path="/console/*" doc:name="HTTP"/>
+        <apikit:console config-ref="symantecrest-config" doc:name="APIkit Console"/>
     </flow>
     <flow name="get:/PRORequests:symantecrest-config">
         <set-payload value="{  &#xA;  &quot;REQUEST_ID&quot;: &quot;text&quot;,&#xA;  &quot;QUERY_PARAMS&quot;: &quot;text&quot;,&#xA;  &quot;REQUEST_SOURCE&quot;: &quot;text&quot;,&#xA;  &quot;TIMESTAMP&quot;: &quot;text&quot;&#xA;}" doc:name="Set Payload"/>
     </flow>
     <flow name="get:/pickReleaseOrders:symantecrest-config">
-        <set-payload value="{&#xA;  &quot;ORDERS&quot;: [ {&#xA;      &quot;DELIVERY_NUMBER&quot;: &quot;12870311&quot;,&#xA;      &quot;ACCOUNT_NUMBER&quot;: &quot;46065&quot;,&#xA;      &quot;ORDER_NUMBER&quot;: &quot;19856550&quot;,&#xA;      &quot;ORDER_STATUS&quot;: &quot;1&quot;,&#xA;      &quot;SHIPMENT_PRIORITY&quot;: &quot;STD&quot;,&#xA;      &quot;CUSTOMER_PO_NUMBER&quot;: &quot;20-P1-395462&quot;,&#xA;      &quot;ORDERED_DATE&quot;: &quot;4/12/2018&quot;,&#xA;      &quot;SHIPPING_INSTRUCTIONS&quot;: &quot;SEE ROUTING RULES FOR VARIOUS LOCATIONS&quot;,&#xA;      &quot;PACKING_INSTRUCTIONS&quot;: &quot;PLEASE SHIP ALL ORDERS VIA TNT GLOBAL&quot;,&#xA;      &quot;CONSIGNEE_FIRSTNAME&quot;: &quot;ARIELLE&quot;,&#xA;      &quot;CONSIGNEE_LASTNAME&quot;: &quot;FLENDER&quot;,&#xA;      &quot;CONSIGNEE_ATTN&quot;: &quot;mdiaz@symantec.com&quot;,&#xA;      &quot;CONSIGNEE_NUMBER&quot;: &quot;2187030&quot;,&#xA;      &quot;CONSIGNEE_COMPANY&quot;: &quot;SYMANTEC MEXICO&quot;,&#xA;      &quot;CONSIGNEE_ADD1&quot;: &quot;BATALLON DE SAN PATRICIO 111&quot;,&#xA;      &quot;CONSIGNEE_ADD2&quot;: &quot;PISO 8 DEPTO 4&quot;,&#xA;      &quot;CONSIGNEE_ADD3&quot;: &quot;XXXX&quot;,&#xA;      &quot;CONSIGNEE_ADD4&quot;: &quot;ZIP 66269&quot;,&#xA;      &quot;CONSIGNEE_CITY&quot;: &quot;WASHINGTON&quot;,&#xA;      &quot;CONSIGNEE_STATE&quot;: &quot;NJ&quot;,&#xA;      &quot;PROVINCE&quot;: &quot;NLG-AMSTERDAM&quot;,&#xA;      &quot;CONSIGNEE_ZIPCODE&quot;: &quot;64710&quot;,&#xA;      &quot;CONSIGNEE_COUNTRYCODE&quot;: &quot;US&quot;,&#xA;      &quot;CONSIGNEE_PHONE&quot;: &quot;0115511-30487500&quot;,&#xA;      &quot;SHIP_TO_MAILSTOP&quot;: &quot;LCUN-3Y8M45&quot;,&#xA;      &quot;BILLTO_CONTACT_FIRSTNAME&quot;: &quot;ARIELLE&quot;,&#xA;      &quot;BILLTO_CONTACT_LASTNAME&quot;: &quot;FLENDER&quot;,&#xA;      &quot;BILTO_ATTN&quot;: &quot;mdiaz@symantec.com&quot;,&#xA;      &quot;BILLTO_CUSTOMER_NUMBER&quot;: &quot;2187030&quot;,&#xA;      &quot;BILLTO_COMPANY&quot;: &quot;SYMANTEC MEXICO&quot;,&#xA;      &quot;BILLTO_ADD1&quot;: &quot;BATALLON DE SAN PATRICIO 111&quot;,&#xA;      &quot;BILLTO_ADD2&quot;: &quot;PISO 8 DEPTO 4&quot;,&#xA;      &quot;BILLTO_ADD3&quot;: &quot;XXXX&quot;,&#xA;      &quot;BILLTO_ADD4&quot;: &quot;ZIP 66269&quot;,&#xA;      &quot;BILLTO_CITY&quot;: &quot;WASHINGTON&quot;,&#xA;      &quot;BILLTO_STATE&quot;: &quot;NJ&quot;,&#xA;      &quot;BILLTO_PROVINCE&quot;: &quot;NLG-AMSTERDAM&quot;,&#xA;      &quot;BILLTO_ZIPCODE&quot;: &quot;64710&quot;,&#xA;      &quot;BILLTO_COUNTRYCODE&quot;: &quot;US&quot;,&#xA;      &quot;BILLTO_CONTACT_PHONE&quot;: &quot;0115511-30487500&quot;,&#xA;      &quot;BILLTO_MAILSTOP&quot;: &quot;LCUN-3Y8M45&quot;,&#xA;      &quot;FREIGHT_ACCOUNT&quot;: &quot;46065&quot;,&#xA;      &quot;SHIP_VIA&quot;: &quot;FEDEX&quot;,&#xA;      &quot;SHIP_TYPE&quot;: &quot;GROUND&quot;,&#xA;      &quot;SIC_CODE&quot;: &quot;99&quot;,&#xA;      &quot;INT_DECLARED_VALUE&quot;: &quot;100&quot;,&#xA;      &quot;SUB_TOTAL&quot;: &quot;124.76&quot;,&#xA;      &quot;SHIP_HANDLING&quot;: &quot;0&quot;,&#xA;      &quot;SALES_TAX&quot;: &quot;86.29&quot;,&#xA;      &quot;TOTAL_DUE&quot;: &quot;124.76&quot;,&#xA;      &quot;AMOUNT_PAID&quot;: &quot;124.76&quot;,&#xA;      &quot;NET_DUE&quot;: &quot;124.76&quot;,&#xA;      &quot;BALANCE_DUE_US&quot;: &quot;50.53&quot;,&#xA;      &quot;PAYMENT_TYPE&quot;: &quot;Credit Card&quot;,&#xA;      &quot;PAYMENT_TERMS&quot;: &quot;Net Due in 270 Days&quot;,&#xA;      &quot;INCO_TERMS&quot;: &quot;FACTORY&quot;,&#xA;      &quot;PACK_LIST_TYPE&quot;: &quot;107&quot;,&#xA;      &quot;FREIGHT_TERMS_CODE&quot;: &quot;PREPAY AND ADD&quot;,&#xA;      &quot;SHIP_METHOD_CODE&quot;: &quot;FEDEX GROUND&quot;,&#xA;      &quot;ENDUSER_FIRSTNAME&quot;: &quot;ARIELLE&quot;,&#xA;      &quot;ENDUSER_LASTNAME&quot;: &quot;FLENDER&quot;,&#xA;      &quot;ENDUSER_CUSTOMER_ATTN&quot;: &quot;mdiaz@symantec.com&quot;,&#xA;      &quot;ENDUSER_CUSTOMER_NUMBER&quot;: &quot;2187030&quot;,&#xA;      &quot;ENDCUSTOMER_NAME&quot;: &quot;SYMANTEC MEXICO&quot;,&#xA;      &quot;ENDCUSTOMER_ADD1&quot;: &quot;BATALLON DE SAN PATRICIO 111&quot;,&#xA;      &quot;ENDCUSTOMER_ADD2&quot;: &quot;PISO 8 DEPTO 4&quot;,&#xA;      &quot;ENDCUSTOMER_ADD3&quot;: &quot;XXXX&quot;,&#xA;      &quot;ENDCUSTOMER_ADD4&quot;: &quot;ZIP 66269&quot;,&#xA;      &quot;ENDCUSTOMER_CITY&quot;: &quot;WASHINGTON&quot;,&#xA;      &quot;ENDCUSTOMER_STATE&quot;: &quot;NJ&quot;,&#xA;      &quot;ENDCUSTOMER_ZIP&quot;: &quot;64710&quot;,&#xA;      &quot;ENDCUSTOMER_COUNTRY&quot;: &quot;Canada&quot;,&#xA;      &quot;ENDUSER_PHONE&quot;: &quot;780-6623603&quot;,&#xA;      &quot;CURRENCY_CODE&quot;: &quot;USD&quot;,&#xA;      &quot;ORG_ID&quot;: &quot;7&quot;,&#xA;      &quot;INVENTORY_ORG_CODE&quot;: &quot;US&quot;,&#xA;      &quot;ORDER_TYPE&quot;: &quot;STANDARD ORDER&quot;,&#xA;      &quot;IMPORTER_OF_RECORD&quot;: &quot;Symantec  Corporation GST#128013208&quot;,&#xA;      &quot;COMMENTS&quot;: &quot;This can be any value&quot;,&#xA;      &quot;INV_ORGANIZATION_ID&quot;: &quot;7&quot;,&#xA;      &quot;SHIP_TO_LOCATION_ID&quot;: &quot;&quot;,&#xA;      &quot;CONSOLIDATE_SHIPMENTS&quot;: &quot;Y&quot;,&#xA;      &quot;LINES&quot;: [&#xA;        {&#xA;          &quot;DELIVERY_NUMBER&quot;: &quot;12870311&quot;,&#xA;          &quot;DELIVERY_LINE_DETAIL_ID&quot;: &quot;1654646&quot;,&#xA;          &quot;ORDER_NUMBER&quot;: &quot;19856550&quot;,&#xA;          &quot;ORDER_LINE_NUMBER&quot;: &quot;1&quot;,&#xA;          &quot;ORDER_LINE_ID&quot;: &quot;2066788&quot;,&#xA;          &quot;PART_NUMBER&quot;: &quot;10248702-LA&quot;,&#xA;          &quot;DESCRIPTION_SHORT&quot;: &quot;PROCOMM PLUS&quot;,&#xA;          &quot;DESCRIPTION_LONG&quot;: &quot;*FUNCTION CROSSGRADE - RAPTOR FIREWALL HOT SPARE TO SYMANTEC ENTERPRISE FIREWALL 6.5 WIN NT/2000 3DES EDUCATIONAL UNLIMITED USERS&quot;,&#xA;          &quot;QUANTITY&quot;: &quot;4&quot;,&#xA;          &quot;PRICE&quot;: &quot;15.98&quot;,&#xA;          &quot;EXTENDED_PRICE&quot;: &quot;15.98&quot;,&#xA;          &quot;CURRENCY_CODE&quot;: &quot;US&quot;,&#xA;          &quot;DON'T_SHIP_BEFORE&quot;: &quot;04/12/2018&quot;,&#xA;          &quot;SHIP_BY_DATE&quot;: &quot;04/12/2018&quot;,&#xA;          &quot;SHIPMENT_PRIORITY&quot;: &quot;STD&quot;,&#xA;          &quot;SHIP_METHOD_CODE&quot;: &quot;FEDEX GROUND&quot;,&#xA;          &quot;SHIPPING_INSTRUCTIONS&quot;: &quot;SEE ROUTING RULES FOR VARIOUS LOC.&quot;,&#xA;          &quot;PACKING_INSTRUCTIONS&quot;: &quot;PLS SHIP ALL ORDERS VIA TNT GLOBAL &quot;,&#xA;          &quot;CDS_PER_ITEM&quot;: &quot;9&quot;,&#xA;          &quot;MANUALS_PER_ITEM&quot;: &quot;1&quot;,&#xA;          &quot;HARDWARE_PER_ITEM&quot;: &quot;0&quot;,&#xA;          &quot;DVD_PER_ITEM&quot;: &quot;0&quot;,&#xA;          &quot;CD_COST_PER_ITEM&quot;: &quot;106&quot;,&#xA;          &quot;MANUAL_COST_PER_ITEM&quot;: &quot;337&quot;,&#xA;          &quot;HARDWARE_COST_PER_ITEM&quot;: &quot;13655&quot;,&#xA;          &quot;DVD_COST_PER_ITEM&quot;: &quot;0&quot;,&#xA;          &quot;EC_HTS&quot;: &quot;8517509000&quot;,&#xA;          &quot;EC_HTS_SHIP_TO&quot;: &quot;8524310011&quot;,&#xA;          &quot;EC_ECCN_US&quot;: &quot;5D992.b.1.&quot;,&#xA;          &quot;EC_CCATS_US&quot;: &quot;G022250&quot;,&#xA;          &quot;EC_MOPS&quot;: &quot;XKC33317&quot;,&#xA;          &quot;EC_LICENSE_CODE_US&quot;: &quot;ENC&quot;,&#xA;          &quot;EC_LICENSE_NUMBER_US&quot;: &quot;ENC&quot;,&#xA;          &quot;EC_LICENSE_EXPIRATION_DATE_US&quot;: &quot;12-APR-2018&quot;,&#xA;          &quot;LICENSE_EXCEPTION&quot;: &quot;XXXXX&quot;,&#xA;          &quot;EC_HTS_SHIP_TO_APAC&quot;: &quot;85243190&quot;,&#xA;          &quot;EC_ECCN_APAC&quot;: &quot;DL05D01C&quot;,&#xA;          &quot;EC_CCATS_APAC&quot;: &quot;XXXX&quot;,&#xA;          &quot;EC_LICENSE_NUMBER_APAC&quot;: &quot;BUP/061103/Symantec/15&quot;,&#xA;          &quot;EC_LICENSE_EXPIRATION_DATE_APAC&quot;: &quot;04-NOV-07&quot;,&#xA;          &quot;LICENSE_EXCEPTION_APAC&quot;: &quot;XXXX&quot;,&#xA;          &quot;COUNTRY_OF_MFG_ORIGIN_APAC&quot;: &quot;XXXX&quot;,&#xA;          &quot;INV_ORG_CODE&quot;: &quot;US&quot;,&#xA;          &quot;OPERATING_UNIT_ID&quot;: &quot;7&quot;,&#xA;          &quot;INV_ORGANIZATION_ID&quot;: &quot;7&quot;,&#xA;          &quot;SUBINVENTORY&quot;: &quot;SHIPSTAGE&quot;,&#xA;          &quot;COMMENTS&quot;: &quot;Y,001.233K01.ENG&quot;,&#xA;          &quot;LINE_NOTE&quot;: &quot;UL1038-A05&quot;,&#xA;          &quot;ORDER_LINE_UNIT_OF_MEASURE&quot;: &quot;EA&quot;,&#xA;          &quot;EC_LICENSE_CODE_APAC&quot;: &quot;ENC&quot;,&#xA;          &quot;SINGAPORE_IMPORT_LICENSE_NO&quot;: &quot;XXX&quot;,&#xA;          &quot;INDONESIAN_REGISTRATION_NO&quot;: &quot;N&quot;,&#xA;          &quot;DISTRIBUTOR_PO_NUMBER&quot;: &quot;HK20061127&quot;,&#xA;          &quot;RESELLER_PO_NUMBER&quot;: &quot;VG10250014&quot;,&#xA;          &quot;BUNDLE_SKU_PART_NO&quot;: &quot;10248702-LA&quot;,&#xA;          &quot;BUNDLE_SKU_DESCRIPTION_SHORT&quot;: &quot;PROCOMM PLUS&quot;,&#xA;          &quot;BUNDLE_SKU_DESCRITPITON_LONG&quot;: &quot;*FUNCTION CROSSGRADE - RAPTOR FIREWALL HOT SPARE TO SYMANTEC ENTERPRISE FIREWALL 6.5 WIN NT/2000 3DES EDUCATIONAL UNLIMITED USERS&quot;,&#xA;          &quot;SHIP_SET&quot;: &quot;1&quot;,&#xA;          &quot;HONGKONG_REGISTRATION_NO&quot;: &quot;5D002&quot;,&#xA;          &quot;MALAYSIA_REGISTRATION_NO&quot;: &quot;On File&quot;,&#xA;          &quot;EC_ECLN_IE&quot;: &quot;ECL99&quot;&#xA;        },&#xA;        {&#xA;          &quot;DELIVERY_NUMBER&quot;: &quot;12870311&quot;,&#xA;          &quot;DELIVERY_LINE_DETAIL_ID&quot;: &quot;1654646&quot;,&#xA;          &quot;ORDER_NUMBER&quot;: &quot;19856550&quot;,&#xA;          &quot;ORDER_LINE_NUMBER&quot;: &quot;1&quot;,&#xA;          &quot;ORDER_LINE_ID&quot;: &quot;2066788&quot;,&#xA;          &quot;PART_NUMBER&quot;: &quot;10248702-LA&quot;,&#xA;          &quot;DESCRIPTION_SHORT&quot;: &quot;PROCOMM PLUS&quot;,&#xA;          &quot;DESCRIPTION_LONG&quot;: &quot;*FUNCTION CROSSGRADE - RAPTOR FIREWALL HOT SPARE TO SYMANTEC ENTERPRISE FIREWALL 6.5 WIN NT/2000 3DES EDUCATIONAL UNLIMITED USERS&quot;,&#xA;          &quot;QUANTITY&quot;: &quot;4&quot;,&#xA;          &quot;PRICE&quot;: &quot;15.98&quot;,&#xA;          &quot;EXTENDED_PRICE&quot;: &quot;15.98&quot;,&#xA;          &quot;CURRENCY_CODE&quot;: &quot;US&quot;,&#xA;          &quot;DON’T_SHIP_BEFORE&quot;: &quot;04/12/2018&quot;,&#xA;          &quot;SHIP_BY_DATE&quot;: &quot;04/12/2018&quot;,&#xA;          &quot;SHIPMENT_PRIORITY&quot;: &quot;STD&quot;,&#xA;          &quot;SHIP_METHOD_CODE&quot;: &quot;FEDEX GROUND&quot;,&#xA;          &quot;SHIPPING_INSTRUCTIONS&quot;: &quot;SEE ROUTING RULES FOR VARIOUS LOC.&quot;,&#xA;          &quot;PACKING_INSTRUCTIONS&quot;: &quot;PLS.SHIP ALL ORDERS VIA TNT GLOBAL &quot;,&#xA;          &quot;CDS_PER_ITEM&quot;: &quot;9&quot;,&#xA;          &quot;MANUALS_PER_ITEM&quot;: &quot;1&quot;,&#xA;          &quot;HARDWARE_PER_ITEM&quot;: &quot;0&quot;,&#xA;          &quot;DVD_PER_ITEM&quot;: &quot;0&quot;,&#xA;          &quot;CD_COST_PER_ITEM&quot;: &quot;106&quot;,&#xA;          &quot;MANUAL_COST_PER_ITEM&quot;: &quot;337&quot;,&#xA;          &quot;HARDWARE_COST_PER_ITEM&quot;: &quot;13655&quot;,&#xA;          &quot;DVD_COST_PER_ITEM&quot;: &quot;0&quot;,&#xA;          &quot;EC_HTS&quot;: &quot;8517509000&quot;,&#xA;          &quot;EC_HTS_SHIP_TO&quot;: &quot;8524310011&quot;,&#xA;          &quot;EC_ECCN_US&quot;: &quot;5D992.b.1.&quot;,&#xA;          &quot;EC_CCATS_US&quot;: &quot;G022250&quot;,&#xA;          &quot;EC_MOPS&quot;: &quot;XKC33317&quot;,&#xA;          &quot;EC_LICENSE_TYPE/CODE_US&quot;: &quot;ENC&quot;,&#xA;          &quot;EC_LICENSE_NUMBER_US&quot;: &quot;ENC&quot;,&#xA;          &quot;EC_LICENSE_EXPIRATION_DATE_US&quot;: &quot;12-APR-2018&quot;,&#xA;          &quot;LICENSE_EXCEPTION&quot;: &quot;XXXXX&quot;,&#xA;          &quot;EC_HTS_SHIP_TO_APAC&quot;: &quot;85243190&quot;,&#xA;          &quot;EC_ECCN_APAC&quot;: &quot;DL05D01C&quot;,&#xA;          &quot;EC_CCATS_APAC&quot;: &quot;XXXX&quot;,&#xA;          &quot;EC_LICENSE_NUMBER_APAC&quot;: &quot;BUP/061103/Symantec/15&quot;,&#xA;          &quot;EC_LICENSE_EXPIRATION_DATE_APAC&quot;: &quot;04-NOV-07&quot;,&#xA;          &quot;LICENSE_EXCEPTION_APAC&quot;: &quot;XXXX&quot;,&#xA;          &quot;COUNTRY_OF_MANUFACTURING_ORIGIN_APAC&quot;: &quot;XXXX&quot;,&#xA;          &quot;INV_ORG_CODE&quot;: &quot;US&quot;,&#xA;          &quot;OPERATING_UNIT_ID&quot;: &quot;7&quot;,&#xA;          &quot;INV_ORGANIZATION_ID&quot;: &quot;7&quot;,&#xA;          &quot;SUBINVENTORY&quot;: &quot;SHIPSTAGE&quot;,&#xA;          &quot;COMMENTS&quot;: &quot;Y,001.233K01.ENG&quot;,&#xA;          &quot;LINE_NOTE&quot;: &quot;UL1038-A05&quot;,&#xA;          &quot;ORDER_LINE_UNIT_OF_MEASURE&quot;: &quot;EA&quot;,&#xA;          &quot;EC_LICENSE_CODE_APAC&quot;: &quot;ENC&quot;,&#xA;          &quot;SINGAPORE_IMPORT_LICENSE_NUMBER&quot;: &quot;XXX&quot;,&#xA;          &quot;INDONESIAN_REGISTRATION_NUMBER&quot;: &quot;N&quot;,&#xA;          &quot;DISTRIBUTOR_PO_NUMBER&quot;: &quot;HK20061127&quot;,&#xA;          &quot;RESELLER_PO_NUMBER&quot;: &quot;VG10250014&quot;,&#xA;          &quot;BUNDLE_SKU_PART_NUMBER&quot;: &quot;10248702-LA&quot;,&#xA;          &quot;BUNDLE_SKU_DESCRIPTION_SHORT&quot;: &quot;PROCOMM PLUS &quot;,&#xA;          &quot;BUNDLE_SKU_DESCRITPITON_LONG&quot;: &quot;*FUNCTION CROSSGRADE - RAPTOR FIREWALL HOT SPARE TO SYMANTEC ENTERPRISE FIREWALL 6.5 WIN NT/2000 3DES EDUCATIONAL UNLIMITED USERS&quot;,&#xA;          &quot;SHIP_SET&quot;: &quot;1&quot;,&#xA;          &quot;HONGKONG_REGISTRATION_NO&quot;: &quot;5D002&quot;,&#xA;          &quot;MALAYSIA_REGISTRATION_NO&quot;: &quot;On File&quot;,&#xA;          &quot;EC_ECLN_IE&quot;: &quot;ECL99&quot;&#xA;        }&#xA;      ]  &#xA;    }&#xA;  ],&#xA;  &quot;IS_LAST_PAGE&quot;: &quot;N&quot;,&#xA;}" doc:name="Set Payload"/>
+        <scatter-gather doc:name="Scatter-Gather">
+            <processor-chain>
+                <db:select config-ref="Oracle_Configuration" doc:name="Oracle Database">
+                    <db:parameterized-query><![CDATA[SELECT *
+FROM william.orders ord, william.orderlines ordl
+WHERE ord.order_id = ordl.order_number]]></db:parameterized-query>
+                </db:select>
+                <json:object-to-json-transformer doc:name="Object to JSON"/>
+                <dw:transform-message doc:name="Transform Message" metadata:id="1a04d9fd-a57a-4e52-9dc5-33838c6727a9">
+                    <dw:input-payload mimeType="application/json"/>
+                    <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+{
+	ORDERS: payload map ((payload01 , indexOfPayload01) -> {
+		DELIVERY_ID: payload01.DELIVERY_ID,
+		ACCOUNT_NUMBER: payload01.ACCOUNT_NUMBER,
+		ORDER_ID: payload01.ORDER_ID,
+		ORDER_STATUS: payload01.ORDER_STATUS,
+		SHIPMENT_PRIORITY: payload01.SHIPMENT_PRIORITY,
+		CUSTOMER_PO_NUMBER: payload01.CUSTOMER_PO_NUMBER,
+		ORDERED_DATE: payload01.ORDERED_DATE,
+		SHIPPING_INSTRUCTIONS: payload01.SHIPPING_INSTRUCTIONS,
+		PACKING_INSTRUCTIONS: payload01.PACKING_INSTRUCTIONS ++ payload01.PACKING_INSTRUCTIONS_OLINES,
+		CONSIGNEE_FIRSTNAME: payload01.CONSIGNEE_FIRSTNAME,
+		CONSIGNEE_LASTNAME: payload01.CONSIGNEE_LASTNAME,
+		CONSIGNEE_ATTN: payload01.CONSIGNEE_ATTN,
+		CONSIGNEE_NUMBER: payload01.CONSIGNEE_NUMBER,
+		CONSIGNEE_COMPANY: payload01.CONSIGNEE_COMPANY,
+		CONSIGNEE_ADD1: payload01.CONSIGNEE_ADD1,
+		CONSIGNEE_ADD2: payload01.CONSIGNEE_ADD2,
+		CONSIGNEE_ADD3: payload01.CONSIGNEE_ADD3,
+		CONSIGNEE_ADD4: payload01.CONSIGNEE_ADD4,
+		CONSIGNEE_CITY: payload01.CONSIGNEE_CITY,
+		CONSIGNEE_STATE: payload01.CONSIGNEE_STATE,
+		CONSIGNEE_PROVINCE: payload01.CONSIGNEE_PROVINCE,
+		CONSIGNEE_ZIPCODE: payload01.CONSIGNEE_ZIPCODE,
+		CONSIGNEE_COUNTRYCODE: payload01.CONSIGNEE_COUNTRYCODE,
+		CONSIGNEE_PHONE: payload01.CONSIGNEE_PHONE,
+		SHIP_TO_MAILSTOP: payload01.SHIP_TO_MAILSTOP,
+		BILLTO_CONTACT_FIRSTNAME: payload01.BILLTOCONTACT_FIRSTNAME,
+		BILLTO_CONTACT_LASTNAME: payload01.BILLTOCONTACT_LASTNAME,
+		BILLTO_ATTN: payload01.BILLTO_ATTN,
+		BILLTO_CUSTOMER_NUMBER: payload01.BILLTO_CUSTOMER_NUMBER,
+		BILLTO_COMPANY: payload01.BILLTO_COMPANY,
+		BILLTO_ADD1: payload01.BILLTO_ADD1,
+		BILLTO_ADD2: payload01.BILLTO_ADD2,
+		BILLTO_ADD3: payload01.BILLTO_ADD3,
+		BILLTO_ADD4: payload01.BILLTO_ADD4,
+		BILLTO_CITY: payload01.BILLTO_CITY,
+		BILLTO_STATE: payload01.BILLTO_STATE,
+		BILLTO_PROVINCE: payload01.BILLTO_PROVINCE,
+		BILLTO_ZIPCODE: payload01.BILLTO_ZIPCODE,
+		BILLTO_COUNTRYCODE: payload01.BILLTO_COUNTRYCODE,
+		BILLTO_CONTACT_PHONE: payload01.BILLTO_CONTACT_PHONE,
+		BILLTO_MAILSTOP: payload01.BILLTO_MAILSTOP,
+		FREIGHT_ACCOUNT: payload01.FREIGHT_ACCOUNT,
+		SHIP_VIA: payload01.SHIP_VIA,
+		SHIP_TYPE: payload01.SHIP_TYPE,
+		SIC_CODE: payload01.SIC_CODE,
+		CONVERSION_RATE: payload01.CONVERSION_RATE,
+		SUB_TOTAL: payload01.SUB_TOTAL,
+		SHIP_HANDLING: payload01.SHIP_HANDLING,
+		SALES_TAX: payload01.SALES_TAX,
+		TOTAL_DUE: payload01.TOTAL_DUE,
+		AMOUNT_PAID: payload01.AMOUNT_PAID,
+		NET_DUE: payload01.NET_DUE,
+		BALANCE_DUE_US: payload01.BALANCE_DUE_US,
+		PAYMENT_TYPE: payload01.PAYMENT_TYPE,
+		PAYMENT_TERMS: payload01.PAYMENT_TERMS,
+		INCO_TERMS: payload01.INCO_TERMS,
+		PACK_LIST_TYPE: payload01.PACK_LIST_TYPE,
+		FREIGHT_TERMS_CODE: payload01.FREIGHT_TERMSCODE,
+		SHIP_METHOD_CODE: payload01.SHIP_METHOD_CODE,
+		ENDUSER_FIRSTNAME: payload01.ENDUSER_FIRSTNAME,
+		ENDUSER_LASTNAME: payload01.ENDUSER_LASTNAME,
+		ENDUSER_CUSTOMER_ATTN: payload01.ENDUSER_CUSTOMER_ATTN,
+		ENDUSER_CUSTOMER_NUMBER: payload01.ENDUSER_CUSTOMER_NUMBER,
+		ENDCUSTOMER_NAME: payload01.ENDCUSTOMER_NAME,
+		ENDCUSTOMER_ADD1: payload01.ENDCUSTOMER_ADD1,
+		ENDCUSTOMER_ADD2: payload01.ENDCUSTOMER_ADD2,
+		ENDCUSTOMER_ADD3: payload01.ENDCUSTOMER_ADD3,
+		ENDCUSTOMER_ADD4: payload01.ENDCUSTOMER_ADD4,
+		ENDCUSTOMER_CITY: payload01.ENDCUSTOMER_CITY,
+		ENDCUSTOMER_STATE: payload01.ENDCUSTOMER_STATE,
+		ENDCUSTOMER_PROVINCE: payload01.ENDCUSTOMER_PROVINCE,
+		ENDCUSTOMER_ZIP: payload01.ENDCUSTOMER_ZIPCODE,
+		ENDCUSTOMER_COUNTRY: payload01.ENDCUSTOMER_COUNTRY,
+		ENDUSER_PHONE: payload01.ENDUSER_PHONE,
+		CURRENCY_CODE: payload01.CURRENCY_CODE,
+		ORG_ID: payload01.ORG_ID,
+		INVENTORY_ORG_CODE: payload01.INVENTORY_ORG_CODE,
+		ORDER_TYPE: payload01.ORDER_TYPE,
+		IMPORTER_OF_RECORD: payload01.IMPORTER_OF_RECORD,
+		COMMENTS: payload01.COMMENTS,
+		INV_ORGANIZATION_ID: payload01.INV_ORGANIZATION_ID,
+		SHIP_TO_LOCATION_ID: payload01.SHIP_TO_LOCATION_ID,
+		CONSOLIDATE_SHIPMENTS: payload01.CONSOLIDATE_SHIPMENTS
+	}),
+	LINES: payload map ((payload01 , indexOfPayload01) -> {
+		DELIVERY_NUMBER: payload01.DELIVERY_NUMBER,
+		DELIVERY_LINE_DETAIL_ID: payload01.DELIVERY_LINE_DETAIL_ID,
+		ORDER_NUMBER: payload01.ORDER_NUMBER,
+		ORDER_LINE_NUMBER: payload01.ORDER_LINE_NUMBER,
+		ORDER_LINE_ID: payload01.ORDER_LINE_ID,
+		PART_NUMBER: payload01.PART_NUMBER,
+		DESCRIPTION_SHORT: payload01.DESCRIPTION_SHORT,
+		DESCRIPTION_LONG: payload01.DESCRIPTION_LONG,
+		QUANTITY: payload01.QUANTITY,
+		PRICE: payload01.PRICE,
+		EXTENDED_PRICE: payload01.EXTENDED_PRICE,
+		CURRENCY_CODE_ORDERLINES: payload01.CURRENCY_CODE_ORDERLINES,
+		DONT_SHIP_BEFORE: payload01.DONT_SHIP_BEFORE,
+		SHIP_BY_DATE: payload01.SHIP_BY_DATE,
+		SHIPMENT_PRIORITY_ORDERLINES: payload01.SHIPMENT_PRIORITY_ORDERLINES,
+		SHIPMENT_METHOD_CODE: payload01.SHIPMENT_METHOD_CODE,
+		SHIPPING_INSTRUCTIONS_OLINES: payload01.SHIPPING_INSTRUCTIONS_OLINES,
+		CDS_PER_ITEM: payload01.CDS_PER_ITEM,
+		MANUALS_PER_ITEM: payload01.MANUALS_PER_ITEM,
+		HARDWARE_PER_ITEM: payload01.HARDWARE_PER_ITEM,
+		DVD_PER_ITEM: payload01.DVD_PER_ITEM,
+		CD_COST_PER_ITEM: payload01.CD_COST_PER_ITEM,
+		MANUAL_COST_PER_ITEM: payload01.MANUAL_COST_PER_ITEM,
+		HARDWARE_COST_PER_ITEM: payload01.HARDWARE_COST_PER_ITEM,
+		DVD_COST_PER_ITEM: payload01.DVD_COST_PER_ITEM,
+		EC_HTS: payload01.EC_HTS,
+		EC_HTS_SHIP_TO: payload01.EC_HTS_SHIP_TO,
+		EC_ECCN_US: payload01.EC_ECCN_US,
+		EC_CCATS_US: payload01.EC_CCATS_US,
+		EC_MOPS: payload01.EC_MOPS,
+		EC_LICENSE_CODE_US: payload01.EC_LICENSE_CODE_US,
+		EC_LICENSE_NUMBER_US: payload01.EC_LICENSE_NUMBER_US,
+		EC_LICENSE_EXPIRATION_DATE_US: payload01.EC_LICENSE_EXPIRATION_DATE_US,
+		LICENSE_EXCEPTION: payload01.LICENSE_EXCEPTION,
+		EC_HTS_SHIP_TO_APAC: payload01.EC_HTS_SHIP_TO_APAC,
+		EC_ECCN_APAC: payload01.EC_ECCN_APAC,
+		EC_CCATS_APAC: payload01.EC_CCATS_APAC,
+		EC_LICENSE_NUMBER_APAC: payload01.EC_LICENSE_NUMBER_APAC,
+		EC_LICENSE_EXPIRATION_DATE_APAC: payload01.EC_LICENSE_EXP_DATE_APAC,
+		LICENSE_EXCEPTION_APAC: payload01.LICENSE_EXCEPTION_APAC,
+		COUNTRY_OF_MFG_ORIGIN_APAC: payload01.COUNTRY_OF_MFG_ORIGIN_APAC,
+		INV_ORG_CODE: payload01.INV_ORG_CODE,
+		OPERATING_UNIT_ID: payload01.OPERATING_UNIT_ID,
+		INV_ORG_ID: payload01.INV_ORG_ID,
+		SUBINVENTORY: payload01.SUBINVENTORY,
+		COMMENTS_ORDERLINES: payload01.COMMENTS_ORDERLINES,
+		LINE_NOTE: payload01.LINE_NOTE,
+		ORDER_LINE_UNIT_OF_MEASURE: payload01.ORDERLINE_UNIT_OF_MEASURE,
+		EC_LICENSE_CODE_APAC: payload01.EC_LICENSE_CODE_APAC,
+		SINGAPORE_IMPORT_LICENSE_NO: payload01.SINGAPORE_IMPORT_LICENSE_NO,
+		INDONESIAN_REGISTRATION_NO: payload01.INDONESIAN_REGISTRATION_NO,
+		DISTRIBUTOR_PO_NUMBER: payload01.DISTRIBUTOR_PO_NUMBER,
+		RESELLER_PO_NUMBER: payload01.RESELLER_PO_NUMBER,
+		BUNDLE_SKU_PART_NO: payload01.BUNDLE_SKU_PART_NO,
+		BUNDLE_SKU_DESCRIPTION_SHORT: payload01.BUNDLE_SKU_DESCRIPTION_SHORT,
+		BUNDLE_SKU_DESCRIPTION_LONG: payload01.BUNDLE_SKU_DESCRIPTION_LONG,
+		SHIP_SET: payload01.SHIP_SET,
+		HONGKONG_REGISTRATION_NO: payload01.HONGKONG_REGISTRATION_NO,
+		MALAYSIA_REGISTRATION_NO: payload01.MALAYSIA_REGISTRATION_NO,
+		EC_ECLN_IE: payload01.EC_ECLN_IE
+	}),
+	IS_LAST_PAGE: "Y"
+}]]></dw:set-payload>
+                </dw:transform-message>
+                <custom-transformer class="symantecrest.GetPickReleaseOrdersFormatter" doc:name="Java Get pickReleaseOrders Formatter"/>
+            </processor-chain>
+            <processor-chain>
+                <dw:transform-message doc:name="Transform Message" metadata:id="c9ab788b-a37d-4394-a273-bde0fe001f6e">
+                    <dw:input-session-variable mimeType="application/java" variableName="request_id"/>
+                    <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+{
+	request_id: sessionVars.request_id,
+	query_params: sessionVars.query_params,
+	request_source: sessionVars.request_source,
+	timestamp: sessionVars.timestamp
+}]]></dw:set-payload>
+                </dw:transform-message>
+                <cassandradb:insert config-ref="CassandraDB__Configuration" keyspaceName="ultimo" table="pr_orders_requests" doc:name="CassandraDB"/>
+            </processor-chain>
+        </scatter-gather>
+        <scatter-gather doc:name="Scatter-Gather">
+            <custom-transformer class="symantecrest.GetPickReleaseOrdersGatherPayload" doc:name="Java Set Gather Payload"/>
+            <async doc:name="Async">
+                <dw:transform-message doc:name="Transform Message" metadata:id="c9ab788b-a37d-4394-a273-bde0fe001f6e">
+                    <dw:input-session-variable mimeType="application/java" variableName="request_id"/>
+                    <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+{
+	request_id: sessionVars.request_id,
+	query_params: sessionVars.query_params,
+	request_source: sessionVars.request_source,
+	timestamp: sessionVars.timestamp
+}]]></dw:set-payload>
+                </dw:transform-message>
+                <cassandradb:insert config-ref="CassandraDB__Configuration" keyspaceName="ultimo" table="pr_orders_requests_logging" doc:name="CassandraDB"/>
+            </async>
+        </scatter-gather>
+        <exception-strategy ref="PickReleaseOrders_Exception_Strategy" doc:name="Copy_of_Reference Exception Strategy"/>
+
     </flow>
     <flow name="get:/PRORequestFailures:symantecrest-config">
         <set-payload value="{&#xA;  &quot;http_status_code&quot;: &quot;500&quot;,&#xA;  &quot;exception_class&quot;: &quot;org.mule.routing.CompositeRoutingException&quot;,&#xA;  &quot;exception_message&quot;: &quot;message goes here&quot;,&#xA;  &quot;request_method&quot;: &quot;text&quot;,&#xA;  &quot;request_path&quot;: &quot;more text&quot;,&#xA;  &quot;query_params&quot;: &quot;even more text&quot;&#xA;}" doc:name="Set Payload"/>
@@ -27,7 +242,13 @@ http://www.mulesoft.org/schema/mule/apikit http://www.mulesoft.org/schema/mule/a
         <set-payload value="{&#xA;  &quot;request_id&quot;: &quot;text&quot;,&#xA;  &quot;http_status_code&quot;: &quot;text&quot;,&#xA;  &quot;exception_class&quot;: &quot;text&quot;,&#xA;  &quot;exception_message&quot;: &quot;text&quot;,&#xA;  &quot;request_method&quot;: &quot;text&quot;,&#xA;  &quot;request_path&quot;: &quot;text&quot;,&#xA;  &quot;request_source&quot;: &quot;text&quot;,&#xA;  &quot;query_params&quot;: &quot;text&quot;,&#xA;  &quot;timestamp&quot;: &quot;text&quot;&#xA;}" doc:name="Set Payload"/>
     </flow>
     <flow name="get:/RMAOrders:symantecrest-config">
-        <set-payload value="{  &#xA;  &quot;RMAS&quot;: [&#xA;    {&#xA;      &quot;ORGANIZATION_CODE&quot;: &quot;FG1&quot;,&#xA;      &quot;SUBINVENTORY_CODE&quot;: &quot;FG1&quot;,&#xA;      &quot;REC_FRM_NAME&quot;: &quot;NAME&quot;,&#xA;      &quot;REC_FRM_ADDRESS1&quot;: &quot;ADDR&quot;,&#xA;      &quot;REC_FRM_ADDRESS2&quot;: &quot;ADDR2&quot;,&#xA;      &quot;REC_FRM_CITY&quot;: &quot;CITY&quot;,&#xA;      &quot;REC_FRM_STATE&quot;: &quot;STATE&quot;,&#xA;      &quot;REC_FRM_ZIP&quot;: &quot;ZIP&quot;,&#xA;      &quot;REC_FRM_COUNTRY&quot;: &quot;COUNTRY&quot;,&#xA;      &quot;REC_FRM_PHONE&quot;: &quot;NUM&quot;,&#xA;      &quot;REC_FRM_EMAIL&quot;: &quot;EMAIL&quot;,&#xA;      &quot;RMA_ORDER_NUM&quot;: &quot;77234&quot;,&#xA;      &quot;RMA_ORDER_LINE_NUM&quot;: &quot;94&quot;,&#xA;      &quot;RMA_ORDER_HEADER_ID&quot;: 7234,&#xA;      &quot;RMA_ORDER_LINE_ID&quot;: 083455,&#xA;      &quot;ITEM_NUMBER&quot;: &quot;357824&quot;,&#xA;      &quot;ITEM_DESCRIPTION&quot;: &quot;DESCRIPTION&quot;,&#xA;      &quot;QUANTITY&quot;: 1,&#xA;      &quot;REQUEST_DATE&quot;: &quot;6/20/2011&quot;,&#xA;      &quot;LINE_TRANSACTION_TYPE&quot;: &quot;TYPE&quot;,&#xA;      &quot;3PL_ACCOUNT_NUMBER&quot;: &quot;9093&quot;,&#xA;      &quot;JHASH_NUMBER&quot;: &quot;5679224&quot;,&#xA;      &quot;COMMODIDTY_CODE&quot;: &quot;835&quot;&#xA;    },&#xA;    {&#xA;      &quot;ORGANIZATION_CODE&quot;: &quot;FG1&quot;,&#xA;      &quot;SUBINVENTORY_CODE&quot;: &quot;FG1&quot;,&#xA;      &quot;REC_FRM_NAME&quot;: &quot;NAME&quot;,&#xA;      &quot;REC_FRM_ADDRESS1&quot;: &quot;ADDR&quot;,&#xA;      &quot;REC_FRM_ADDRESS2&quot;: &quot;ADDR2&quot;,&#xA;      &quot;REC_FRM_CITY&quot;: &quot;CITY&quot;,&#xA;      &quot;REC_FRM_STATE&quot;: &quot;STATE&quot;,&#xA;      &quot;REC_FRM_ZIP&quot;: &quot;ZIP&quot;,&#xA;      &quot;REC_FRM_COUNTRY&quot;: &quot;COUNTRY&quot;,&#xA;      &quot;REC_FRM_PHONE&quot;: &quot;NUM&quot;,&#xA;      &quot;REC_FRM_EMAIL&quot;: &quot;EMAIL&quot;,&#xA;      &quot;RMA_ORDER_NUM&quot;: &quot;77234&quot;,&#xA;      &quot;RMA_ORDER_LINE_NUM&quot;: &quot;94&quot;,&#xA;      &quot;RMA_ORDER_HEADER_ID&quot;: 7234,&#xA;      &quot;RMA_ORDER_LINE_ID&quot;: 083455,&#xA;      &quot;ITEM_NUMBER&quot;: &quot;357824&quot;,&#xA;      &quot;ITEM_DESCRIPTION&quot;: &quot;DESCRIPTION&quot;,&#xA;      &quot;QUANTITY&quot;: 1,&#xA;      &quot;REQUEST_DATE&quot;: &quot;6/20/2011&quot;,&#xA;      &quot;LINE_TRANSACTION_TYPE&quot;: &quot;TYPE&quot;,&#xA;      &quot;3PL_ACCOUNT_NUMBER&quot;: &quot;9093&quot;,&#xA;      &quot;JHASH_NUMBER&quot;: &quot;5679224&quot;,&#xA;      &quot;COMMODIDTY_CODE&quot;: &quot;835&quot;&#xA;    }&#xA;  ],&#xA;  &quot;IS_LAST_PAGE&quot;: &quot;Y&quot;&#xA;}" doc:name="Set Payload"/>
+        <db:select config-ref="Oracle_Configuration" doc:name="Database">
+            <db:dynamic-query><![CDATA[SELECT *
+FROM william.rma
+WHERE RMA_ORDER_NUM IN (#[message.inboundProperties.'http.query.params'.RMA_ORDER_NUMBERS])]]></db:dynamic-query>
+        </db:select>
+        <json:object-to-json-transformer doc:name="Object to JSON"/>
+
     </flow>
     <flow name="get:/purchaseOrders:symantecrest-config">
         <set-payload value="{   &#xA;  &quot;PURCHASE_ORDERS&quot;: [&#xA;    {  &#xA;      &quot;PO_HEADER_ID&quot;: 157765,&#xA;      &quot;PO_NUMBER&quot;: &quot;1032652&quot;,&#xA;      &quot;PO_REVISION_NUM&quot;: 1,&#xA;      &quot;PO_HEADER_TYPE&quot;: &quot;STANDARD&quot;,&#xA;      &quot;VENDOR_NAME&quot;: &quot;DISCOPY LABS&quot;,&#xA;      &quot;BUYER_NAME&quot;: &quot;SWAN,JEFF D&quot;,&#xA;      &quot;AUTHORIZATION_STATUS&quot;: &quot;APPROVED&quot;,&#xA;      &quot;PO_DATE&quot;: &quot;2/14/2005  11:18:05 AM&quot;,&#xA;      &quot;VENDOR_SITE&quot;: &quot;ACH-ONTARIO&quot;,&#xA;      &quot;CURRENCY_CODE&quot;: &quot;USD&quot;,&#xA;      &quot;COMMENTS&quot;: &quot;Only print DRM keys when new orders are booked&quot;,&#xA;      &quot;CANCEL_FLAG&quot;: &quot;N&quot;,&#xA;      &quot;CLOSED_CODE&quot;: &quot;OPEN&quot;,&#xA;      &quot;PO_LINES&quot;: [&#xA;        {&#xA;          &quot;PO_HEADER_ID&quot;: 157765,&#xA;          &quot;PO_NUMBER&quot;: &quot;1032652&quot;,&#xA;          &quot;PO_REVISION_NUM&quot;: 1,&#xA;          &quot;PO_LINE_ID&quot;: 336487,&#xA;          &quot;PO_LINE_NUM&quot;: 1,&#xA;          &quot;PO_LINE_TYPE&quot;: &quot;Goods&quot;,&#xA;          &quot;ITEM_NO&quot;: &quot;10351194&quot;,&#xA;          &quot;ITEM_DESCRIPTION&quot;: &quot;NIS 2005 DELL OEM DRM STICKER J9226&quot;,&#xA;          &quot;UOM_CODE&quot;: &quot;EACH&quot;,&#xA;          &quot;QUANTITY&quot;: 300000,&#xA;          &quot;UNIT_PRICE&quot;: 0.15,&#xA;          &quot;DELIVERY_DATE&quot;: &quot;2/28/2005&quot;,&#xA;          &quot;EXTENDED_PRICE&quot;: 45000,&#xA;          &quot;TAXABLE_FLAG&quot;: &quot;N&quot;,&#xA;          &quot;NOTE_TO_VENDOR&quot;: &quot;This is Note To Vendor&quot;,&#xA;          &quot;SUBINVENTORY_CODE&quot;: &quot;STK17&quot;,&#xA;          &quot;CANCEL_FLAG&quot;: &quot;N&quot;,&#xA;          &quot;CLOSED_CODE&quot;: &quot;OPEN&quot;&#xA;        },&#xA;        {&#xA;          &quot;PO_HEADER_ID&quot;: 157765,&#xA;          &quot;PO_NUMBER&quot;: &quot;1032652&quot;,&#xA;          &quot;PO_REVISION_NUM&quot;: 1,&#xA;          &quot;PO_LINE_ID&quot;: 336487,&#xA;          &quot;PO_LINE_NUM&quot;: 1,&#xA;          &quot;PO_LINE_TYPE&quot;: &quot;Goods&quot;,&#xA;          &quot;ITEM_NO&quot;: &quot;10351194&quot;,&#xA;          &quot;ITEM_DESCRIPTION&quot;: &quot;NIS 2005 DELL OEM DRM STICKER J9226&quot;,&#xA;          &quot;UOM_CODE&quot;: &quot;EACH&quot;,&#xA;          &quot;QUANTITY&quot;: 300000,&#xA;          &quot;UNIT_PRICE&quot;: 0.15,&#xA;          &quot;DELIVERY_DATE&quot;: &quot;2/28/2005&quot;,&#xA;          &quot;EXTENDED_PRICE&quot;: 45000,&#xA;          &quot;TAXABLE_FLAG&quot;: &quot;N&quot;,&#xA;          &quot;NOTE_TO_VENDOR&quot;: &quot;This is Note To Vendor&quot;,&#xA;          &quot;SUBINVENTORY_CODE&quot;: &quot;STK17&quot;,&#xA;          &quot;CANCEL_FLAG&quot;: &quot;N&quot;,&#xA;          &quot;CLOSED_CODE&quot;: &quot;OPEN&quot;&#xA;        }&#xA;      ]&#xA;    }&#xA;  ],&#xA;  &quot;IS_LAST_PAGE&quot;:&quot;Y&quot;,&#xA;}" doc:name="Set Payload"/>
@@ -35,7 +256,7 @@ http://www.mulesoft.org/schema/mule/apikit http://www.mulesoft.org/schema/mule/a
     <flow name="get:/PRORequestsLogging:symantecrest-config">
         <set-payload value="{  &#xA;  &quot;REQUEST_ID&quot;: &quot;text&quot;,&#xA;  &quot;QUERY_PARAMS&quot;: &quot;text&quot;,&#xA;  &quot;REQUEST_SOURCE&quot;: &quot;text&quot;,&#xA;  &quot;TIMESTAMP&quot;: &quot;text&quot;&#xA;}" doc:name="Set Payload"/>
     </flow>
-    <apikit:mapping-exception-strategy xmlns:apikit="http://www.mulesoft.org/schema/mule/apikit" name="symantecrest-apiKitGlobalExceptionMapping">
+    <apikit:mapping-exception-strategy name="symantecrest-apiKitGlobalExceptionMapping">
         <apikit:mapping statusCode="404">
             <apikit:exception value="org.mule.module.apikit.exception.NotFoundException" />
             <set-property propertyName="Content-Type" value="application/json" doc:name="Property"/>
@@ -60,6 +281,40 @@ http://www.mulesoft.org/schema/mule/apikit http://www.mulesoft.org/schema/mule/a
             <apikit:exception value="org.mule.module.apikit.exception.BadRequestException" />
             <set-property propertyName="Content-Type" value="application/json" doc:name="Property"/>
             <set-payload value="{ &quot;message&quot;: &quot;Bad request&quot; }" doc:name="Set Payload"/>
+        </apikit:mapping>
+    </apikit:mapping-exception-strategy>
+    <apikit:mapping-exception-strategy name="PickReleaseOrders_Exception_Strategy">
+        <apikit:mapping statusCode="500">
+            <apikit:exception value="org.mule.routing.CompositeRoutingException"/>
+            <set-property propertyName="Content-Type" value="application/json" doc:name="Property"/>
+            <message-properties-transformer doc:name="Set Exception Properties">
+                <add-message-property key="http_status_code" value="500 Server Internal Error"/>
+                <add-message-property key="exception_class" value="#[exception.getCauseException().getClass().toString()]"/>
+                <add-message-property key="exception_message" value="#[exception.getCauseException().toString()]"/>
+            </message-properties-transformer>
+            <dw:transform-message doc:name="Transform Payload for CassandraDB Insert" metadata:id="0e5f41f7-f1ea-42cd-b2a3-05c10d174f00">
+                <dw:input-payload/>
+                <dw:input-outbound-property mimeType="application/java" propertyName="query_params"/>
+                <dw:input-outbound-property mimeType="application/java" propertyName="request_method"/>
+                <dw:input-outbound-property mimeType="application/java" propertyName="request_path"/>
+                <dw:input-outbound-property mimeType="application/java" propertyName="request_id"/>
+                <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+{
+	request_id: sessionVars.request_id,
+	http_status_code: outboundProperties.http_status_code,
+	exception_class: outboundProperties.exception_class,
+	exception_message: outboundProperties.exception_message,
+	request_method: sessionVars.request_method,
+	request_path: sessionVars.request_path,
+	request_source: sessionVars.request_source,
+	query_params: sessionVars.query_params,
+	timestamp: sessionVars.timestamp
+}]]></dw:set-payload>
+            </dw:transform-message>
+            <cassandradb:insert config-ref="CassandraDB__Configuration" keyspaceName="ultimo" table="request_failures" doc:name="CassandraDB"/>
+            <set-payload value="{  &quot;error_type&quot;: &quot;500 Server Internal Error&quot;,  &quot;error_message&quot;: &quot;#[message.outboundProperties.exception_message]&quot;  }" doc:name="Set Payload for Client 500 Error Message"/>
         </apikit:mapping>
     </apikit:mapping-exception-strategy>
 </mule>

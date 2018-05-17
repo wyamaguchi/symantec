@@ -1,0 +1,9 @@
+{
+	"request_id": "123e4567-e89b-12d3-a456-426655440000",
+	"http_status_code": "500",
+    "exception_class": "org.mule.routing.CompositeRoutingException",
+    "exception_message": "message goes here",
+    "request_method": "text",
+    "request_path": "more text",
+    "query_params": "even more text"
+}
