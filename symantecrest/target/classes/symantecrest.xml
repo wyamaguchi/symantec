@@ -29,7 +29,8 @@ http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee
         <apikit:console config-ref="symantecrest-config" doc:name="APIkit Console"/>
     </flow>
     <flow name="get:/PRORequests:symantecrest-config">
-        <set-payload value="{  &#xA;  &quot;REQUEST_ID&quot;: &quot;text&quot;,&#xA;  &quot;QUERY_PARAMS&quot;: &quot;text&quot;,&#xA;  &quot;REQUEST_SOURCE&quot;: &quot;text&quot;,&#xA;  &quot;TIMESTAMP&quot;: &quot;text&quot;&#xA;}" doc:name="Set Payload"/>
+        <cassandradb:select config-ref="CassandraDB__Configuration" query="dsql:SELECT request_source, query_params, request_id, timestamp FROM pr_orders_requests" doc:name="CassandraDB"/>
+
     </flow>
     <flow name="get:/pickReleaseOrders:symantecrest-config">
         <scatter-gather doc:name="Scatter-Gather">
@@ -236,10 +237,12 @@ WHERE ord.order_id = ordl.order_number]]></db:parameterized-query>
 
     </flow>
     <flow name="get:/PRORequestFailures:symantecrest-config">
-        <set-payload value="{&#xA;  &quot;http_status_code&quot;: &quot;500&quot;,&#xA;  &quot;exception_class&quot;: &quot;org.mule.routing.CompositeRoutingException&quot;,&#xA;  &quot;exception_message&quot;: &quot;message goes here&quot;,&#xA;  &quot;request_method&quot;: &quot;text&quot;,&#xA;  &quot;request_path&quot;: &quot;more text&quot;,&#xA;  &quot;query_params&quot;: &quot;even more text&quot;&#xA;}" doc:name="Set Payload"/>
+        <cassandradb:select config-ref="CassandraDB__Configuration" query="dsql:SELECT * FROM pr_orders_request_failures" doc:name="CassandraDB"/>
+
     </flow>
     <flow name="get:/RequestFailures:symantecrest-config">
-        <set-payload value="{&#xA;  &quot;request_id&quot;: &quot;text&quot;,&#xA;  &quot;http_status_code&quot;: &quot;text&quot;,&#xA;  &quot;exception_class&quot;: &quot;text&quot;,&#xA;  &quot;exception_message&quot;: &quot;text&quot;,&#xA;  &quot;request_method&quot;: &quot;text&quot;,&#xA;  &quot;request_path&quot;: &quot;text&quot;,&#xA;  &quot;request_source&quot;: &quot;text&quot;,&#xA;  &quot;query_params&quot;: &quot;text&quot;,&#xA;  &quot;timestamp&quot;: &quot;text&quot;&#xA;}" doc:name="Set Payload"/>
+        <cassandradb:select config-ref="CassandraDB__Configuration" query="dsql:SELECT * FROM request_failures" doc:name="CassandraDB"/>
+
     </flow>
     <flow name="get:/RMAOrders:symantecrest-config">
         <db:select config-ref="Oracle_Configuration" doc:name="Database">
@@ -251,37 +254,197 @@ WHERE RMA_ORDER_NUM IN (#[message.inboundProperties.'http.query.params'.RMA_ORDE
 
     </flow>
     <flow name="get:/purchaseOrders:symantecrest-config">
-        <set-payload value="{   &#xA;  &quot;PURCHASE_ORDERS&quot;: [&#xA;    {  &#xA;      &quot;PO_HEADER_ID&quot;: 157765,&#xA;      &quot;PO_NUMBER&quot;: &quot;1032652&quot;,&#xA;      &quot;PO_REVISION_NUM&quot;: 1,&#xA;      &quot;PO_HEADER_TYPE&quot;: &quot;STANDARD&quot;,&#xA;      &quot;VENDOR_NAME&quot;: &quot;DISCOPY LABS&quot;,&#xA;      &quot;BUYER_NAME&quot;: &quot;SWAN,JEFF D&quot;,&#xA;      &quot;AUTHORIZATION_STATUS&quot;: &quot;APPROVED&quot;,&#xA;      &quot;PO_DATE&quot;: &quot;2/14/2005  11:18:05 AM&quot;,&#xA;      &quot;VENDOR_SITE&quot;: &quot;ACH-ONTARIO&quot;,&#xA;      &quot;CURRENCY_CODE&quot;: &quot;USD&quot;,&#xA;      &quot;COMMENTS&quot;: &quot;Only print DRM keys when new orders are booked&quot;,&#xA;      &quot;CANCEL_FLAG&quot;: &quot;N&quot;,&#xA;      &quot;CLOSED_CODE&quot;: &quot;OPEN&quot;,&#xA;      &quot;PO_LINES&quot;: [&#xA;        {&#xA;          &quot;PO_HEADER_ID&quot;: 157765,&#xA;          &quot;PO_NUMBER&quot;: &quot;1032652&quot;,&#xA;          &quot;PO_REVISION_NUM&quot;: 1,&#xA;          &quot;PO_LINE_ID&quot;: 336487,&#xA;          &quot;PO_LINE_NUM&quot;: 1,&#xA;          &quot;PO_LINE_TYPE&quot;: &quot;Goods&quot;,&#xA;          &quot;ITEM_NO&quot;: &quot;10351194&quot;,&#xA;          &quot;ITEM_DESCRIPTION&quot;: &quot;NIS 2005 DELL OEM DRM STICKER J9226&quot;,&#xA;          &quot;UOM_CODE&quot;: &quot;EACH&quot;,&#xA;          &quot;QUANTITY&quot;: 300000,&#xA;          &quot;UNIT_PRICE&quot;: 0.15,&#xA;          &quot;DELIVERY_DATE&quot;: &quot;2/28/2005&quot;,&#xA;          &quot;EXTENDED_PRICE&quot;: 45000,&#xA;          &quot;TAXABLE_FLAG&quot;: &quot;N&quot;,&#xA;          &quot;NOTE_TO_VENDOR&quot;: &quot;This is Note To Vendor&quot;,&#xA;          &quot;SUBINVENTORY_CODE&quot;: &quot;STK17&quot;,&#xA;          &quot;CANCEL_FLAG&quot;: &quot;N&quot;,&#xA;          &quot;CLOSED_CODE&quot;: &quot;OPEN&quot;&#xA;        },&#xA;        {&#xA;          &quot;PO_HEADER_ID&quot;: 157765,&#xA;          &quot;PO_NUMBER&quot;: &quot;1032652&quot;,&#xA;          &quot;PO_REVISION_NUM&quot;: 1,&#xA;          &quot;PO_LINE_ID&quot;: 336487,&#xA;          &quot;PO_LINE_NUM&quot;: 1,&#xA;          &quot;PO_LINE_TYPE&quot;: &quot;Goods&quot;,&#xA;          &quot;ITEM_NO&quot;: &quot;10351194&quot;,&#xA;          &quot;ITEM_DESCRIPTION&quot;: &quot;NIS 2005 DELL OEM DRM STICKER J9226&quot;,&#xA;          &quot;UOM_CODE&quot;: &quot;EACH&quot;,&#xA;          &quot;QUANTITY&quot;: 300000,&#xA;          &quot;UNIT_PRICE&quot;: 0.15,&#xA;          &quot;DELIVERY_DATE&quot;: &quot;2/28/2005&quot;,&#xA;          &quot;EXTENDED_PRICE&quot;: 45000,&#xA;          &quot;TAXABLE_FLAG&quot;: &quot;N&quot;,&#xA;          &quot;NOTE_TO_VENDOR&quot;: &quot;This is Note To Vendor&quot;,&#xA;          &quot;SUBINVENTORY_CODE&quot;: &quot;STK17&quot;,&#xA;          &quot;CANCEL_FLAG&quot;: &quot;N&quot;,&#xA;          &quot;CLOSED_CODE&quot;: &quot;OPEN&quot;&#xA;        }&#xA;      ]&#xA;    }&#xA;  ],&#xA;  &quot;IS_LAST_PAGE&quot;:&quot;Y&quot;,&#xA;}" doc:name="Set Payload"/>
+        <db:select config-ref="Oracle_Configuration" doc:name="Database">
+            <db:dynamic-query><![CDATA[SELECT *
+FROM william.purchase_orders po, william.purchase_order_lines pol
+WHERE po.po_header_id = pol.po_id]]></db:dynamic-query>
+        </db:select>
+        <json:object-to-json-transformer doc:name="Object to JSON"/>
+        <dw:transform-message doc:name="Transform Message" metadata:id="2f55d2d2-d5ec-47fc-a718-34257d08a773">
+            <dw:input-payload mimeType="application/json"/>
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+{
+	PURCHASE_ORDERS: payload map ((payload01 , indexOfPayload01) -> {
+		PO_HEADER_ID: payload01.PO_HEADER_ID,
+		PO_NUMBER: payload01.PO_NUMBER,
+		PO_REVISION_NUM: payload01.PO_REVISION_NUM,
+		PO_HEADER_TYPE: payload01.PO_HEADER_TYPE,
+		VENDOR_NAME: payload01.VENDOR_NAME,
+		BUYER_NAME: payload01.BUYER_NAME,
+		AUTHORIZATION_STATUS: payload01.AUTHORIZATION_STATUS,
+		PO_DATE: payload01.PO_DATE as :string,
+		VENDOR_SITE: payload01.VENDOR_SITE,
+		CURRENCY_CODE: payload01.CURRENCY_CODE,
+		COMMENTS: payload01.COMMENTS,
+		CANCEL_FLAG: payload01.CANCEL_FLAG,
+		CLOSED_CODE: payload01.CLOSED_CODE
+	}),
+	PO_LINES: payload map ((payload01 , indexOfPayload01) -> {
+		PO_LINE_ID: payload01.PO_LINE_ID,
+		PO_LINE_NUM: payload01.PO_LINE_NUM,
+		PO_LINE_TYPE: payload01.PO_LINE_TYPE,
+		ITEM_NO: payload01.ITEM_NO,
+		ITEM_DESCRIPTION: payload01.ITEM_DESCRIPTION,
+		UOM_CODE: payload01.UOM_CODE,
+		QUANTITY: payload01.QUANTITY,
+		UNIT_PRICE: payload01.UNIT_PRICE,
+		DELIVERY_DATE: payload01.DELIVERY_DATE,
+		EXTENDED_PRICE: payload01.EXTENDED_PRICE,
+		TAXABLE_FLAG: payload01.TAXABLE_FLAG,
+		NOTE_TO_VENDOR: payload01.NOTE_TO_VENDOR,
+		SUBINVENTORY_CODE: payload01.SUBINVENTORY_CODE,
+		CANCEL_FLAG: payload01.CANCEL_FLAG_POLINES,
+		CLOSED_CODE: payload01.CLOSED_CODE_POLINES,
+		PO_ID: payload01.PO_ID
+	})
+}]]></dw:set-payload>
+        </dw:transform-message>
+        <custom-transformer class="symantecrest.GetPurchaseOrdersFormatter" doc:name="Java Get purchaseOrders Formatter"/>
+
     </flow>
     <flow name="get:/PRORequestsLogging:symantecrest-config">
-        <set-payload value="{  &#xA;  &quot;REQUEST_ID&quot;: &quot;text&quot;,&#xA;  &quot;QUERY_PARAMS&quot;: &quot;text&quot;,&#xA;  &quot;REQUEST_SOURCE&quot;: &quot;text&quot;,&#xA;  &quot;TIMESTAMP&quot;: &quot;text&quot;&#xA;}" doc:name="Set Payload"/>
+        <cassandradb:select config-ref="CassandraDB__Configuration" query="dsql:SELECT query_params,request_id,request_source, timestamp FROM pr_orders_requests_logging" doc:name="CassandraDB"/>
+
     </flow>
     <apikit:mapping-exception-strategy name="symantecrest-apiKitGlobalExceptionMapping">
-        <apikit:mapping statusCode="404">
-            <apikit:exception value="org.mule.module.apikit.exception.NotFoundException" />
+        <apikit:mapping statusCode="400">
+            <apikit:exception value="org.mule.module.apikit.exception.BadRequestException"/>
             <set-property propertyName="Content-Type" value="application/json" doc:name="Property"/>
-            <set-payload value="{ &quot;message&quot;: &quot;Resource not found&quot; }" doc:name="Set Payload"/>
-        </apikit:mapping>
-        <apikit:mapping statusCode="405">
-            <apikit:exception value="org.mule.module.apikit.exception.MethodNotAllowedException" />
-            <set-property propertyName="Content-Type" value="application/json" doc:name="Property"/>
-            <set-payload value="{ &quot;message&quot;: &quot;Method not allowed&quot; }" doc:name="Set Payload"/>
-        </apikit:mapping>
-        <apikit:mapping statusCode="415">
-            <apikit:exception value="org.mule.module.apikit.exception.UnsupportedMediaTypeException" />
-            <set-property propertyName="Content-Type" value="application/json" doc:name="Property"/>
-            <set-payload value="{ &quot;message&quot;: &quot;Unsupported media type&quot; }" doc:name="Set Payload"/>
+            <message-properties-transformer doc:name="Set Exception Properties">
+                <add-message-property key="http_status_code" value="400 Bad Request"/>
+                <add-message-property key="exception_class" value="#[exception.getCauseException().getClass().toString()]"/>
+                <add-message-property key="exception_message" value="#[exception.getCauseException().toString()]"/>
+            </message-properties-transformer>
+            <dw:transform-message doc:name="Transform Message 400" metadata:id="3e3577a5-397a-45ae-ad45-3c5620a0209a">
+                <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+{
+	request_id: sessionVars.request_id,
+	http_status_code: outboundProperties.http_status_code,
+	exception_class: outboundProperties.exception_class,
+	exception_message: outboundProperties.exception_message,
+	request_method: sessionVars.request_method,
+	request_path: sessionVars.request_path,
+	request_source: sessionVars.request_source,
+	query_params: sessionVars.query_params,
+	timestamp: sessionVars.timestamp
+}]]></dw:set-payload>
+            </dw:transform-message>
+            <cassandradb:insert config-ref="CassandraDB__Configuration" keyspaceName="ultimo" table="request_failures" doc:name="CassandraDB"/>
+            <set-payload value="{     &quot;error_type&quot;: &quot;400 Bad Request&quot;,    &quot;error_message&quot;: &quot;#[message.outboundProperties.exception_message]&quot;  }" doc:name="Set Payload for client 400 error message"/>
         </apikit:mapping>
         <apikit:mapping statusCode="406">
-            <apikit:exception value="org.mule.module.apikit.exception.NotAcceptableException" />
+            <apikit:exception value="org.mule.module.apikit.exception.NotAcceptableException"/>
             <set-property propertyName="Content-Type" value="application/json" doc:name="Property"/>
-            <set-payload value="{ &quot;message&quot;: &quot;Not acceptable&quot; }" doc:name="Set Payload"/>
+            <message-properties-transformer doc:name="Set Exception Properties">
+                <add-message-property key="http_status_code" value="406 Not acceptable"/>
+                <add-message-property key="exception_class" value="#[exception.getCauseException().getClass().toString()]"/>
+                <add-message-property key="exception_message" value="#[exception.getCauseException().toString()]"/>
+            </message-properties-transformer>
+            <dw:transform-message doc:name="Transform Message 406" metadata:id="6d513618-da62-40d4-8a83-8492c04ee5cc">
+                <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+{
+	request_id: sessionVars.request_id,
+	http_status_code: outboundProperties.http_status_code,
+	exception_class: outboundProperties.exception_class,
+	exception_message: outboundProperties.exception_message,
+	request_method: sessionVars.request_method,
+	request_path: sessionVars.request_path,
+	request_source: sessionVars.request_source,
+	query_params: sessionVars.query_params,
+	timestamp: sessionVars.timestamp
+}]]></dw:set-payload>
+            </dw:transform-message>
+            <cassandradb:insert config-ref="CassandraDB__Configuration" keyspaceName="ultimo" table="request_failures" doc:name="CassandraDB"/>
+            <set-payload value="{   &quot;message&quot;: &quot;406 Not acceptable&quot;,   &quot;error_message&quot;: &quot;#[message.outboundProperties.exception_message]&quot;  }" doc:name="Set Payload for client 406 error message"/>
         </apikit:mapping>
-        <apikit:mapping statusCode="400">
-            <apikit:exception value="org.mule.module.apikit.exception.BadRequestException" />
+        <apikit:mapping statusCode="415">
+            <apikit:exception value="org.mule.module.apikit.exception.UnsupportedMediaTypeException"/>
             <set-property propertyName="Content-Type" value="application/json" doc:name="Property"/>
-            <set-payload value="{ &quot;message&quot;: &quot;Bad request&quot; }" doc:name="Set Payload"/>
+            <message-properties-transformer doc:name="Set Exception Properties">
+                <add-message-property key="http_status_code" value="415 Unsupported media type"/>
+                <add-message-property key="exception_class" value="#[exception.getCauseException().getClass().toString()]"/>
+                <add-message-property key="exception_message" value="#[exception.getCauseException().toString()]"/>
+            </message-properties-transformer>
+            <dw:transform-message doc:name="Transform Message 415" metadata:id="39baa204-6039-40fb-8b3e-bff835398707">
+                <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+{
+	request_id: sessionVars.request_id,
+	http_status_code: outboundProperties.http_status_code,
+	exception_class: outboundProperties.exception_class,
+	exception_message: outboundProperties.exception_message,
+	request_method: sessionVars.request_method,
+	request_path: sessionVars.request_path,
+	request_source: sessionVars.request_source,
+	query_params: sessionVars.query_params,
+	timestamp: sessionVars.timestamp
+}]]></dw:set-payload>
+            </dw:transform-message>
+            <cassandradb:insert config-ref="CassandraDB__Configuration" keyspaceName="ultimo" table="request_failures" doc:name="CassandraDB"/>
+            <set-payload value="{   &quot;message&quot;: &quot;415 Unsupported media type&quot;,  &quot;error_message&quot;: &quot;#[message.outboundProperties.exception_message]&quot;  }" doc:name="Set Payload for client 415 error message"/>
         </apikit:mapping>
+        <apikit:mapping statusCode="404">
+            <apikit:exception value="org.mule.module.apikit.exception.NotFoundException"/>
+            <set-property propertyName="Content-Type" value="application/json" doc:name="Property"/>
+            <message-properties-transformer doc:name="Set Exception Properties">
+                <add-message-property key="http_status_code" value="404 Resource not found"/>
+                <add-message-property key="exception_class" value="#[exception.getCauseException().getClass().toString()]"/>
+                <add-message-property key="exception_message" value="#[exception.getCauseException().toString()]"/>
+            </message-properties-transformer>
+            <dw:transform-message doc:name="Transform Message 404" metadata:id="dfc688c5-fb9c-4e5d-b68a-15e84ae8c2ba">
+                <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+{
+	request_id: sessionVars.request_id,
+	http_status_code: outboundProperties.http_status_code,
+	exception_class: outboundProperties.exception_class,
+	exception_message: outboundProperties.exception_message,
+	request_method: sessionVars.request_method,
+	request_path: sessionVars.request_path,
+	request_source: sessionVars.request_source,
+	query_params: sessionVars.query_params,
+	timestamp: sessionVars.timestamp
+}]]></dw:set-payload>
+            </dw:transform-message>
+            <cassandradb:insert config-ref="CassandraDB__Configuration" keyspaceName="ultimo" table="request_failures" doc:name="CassandraDB"/>
+            <set-payload value="{   &quot;message&quot;: &quot;404 Resource not found&quot;,  &quot;error_message&quot;: &quot;#[message.outboundProperties.exception_message]&quot;  }" doc:name="Set Payload for client 404 error message"/>
+        </apikit:mapping>
+        <apikit:mapping statusCode="405">
+            <apikit:exception value="org.mule.module.apikit.exception.MethodNotAllowedException"/>
+            <set-property propertyName="Content-Type" value="application/json" doc:name="Property"/>
+            <message-properties-transformer doc:name="Set Exception Properties">
+                <add-message-property key="http_status_code" value="405 Method not allowed"/>
+                <add-message-property key="exception_class" value="#[exception.getCauseException().getClass().toString()]"/>
+                <add-message-property key="exception_message" value="#[exception.getCauseException().toString()]"/>
+            </message-properties-transformer>
+            <dw:transform-message doc:name="Transform Message 405">
+                <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+{
+	request_id: sessionVars.request_id,
+	http_status_code: outboundProperties.http_status_code,
+	exception_class: outboundProperties.exception_class,
+	exception_message: outboundProperties.exception_message,
+	request_method: sessionVars.request_method,
+	request_path: sessionVars.request_path,
+	request_source: sessionVars.request_source,
+	query_params: sessionVars.query_params,
+	timestamp: sessionVars.timestamp
+}]]></dw:set-payload>
+            </dw:transform-message>
+            <cassandradb:insert config-ref="CassandraDB__Configuration" keyspaceName="ultimo" table="request_failures" doc:name="CassandraDB"/>
+            <set-payload value="{   &quot;message&quot;: &quot;405 Method not allowed&quot;,  &quot;error_message&quot;: &quot;#[message.outboundProperties.exception_message]&quot;  }" doc:name="Set Payload for client 405 error message"/>
+        </apikit:mapping>
+
     </apikit:mapping-exception-strategy>
     <apikit:mapping-exception-strategy name="PickReleaseOrders_Exception_Strategy">
         <apikit:mapping statusCode="500">
