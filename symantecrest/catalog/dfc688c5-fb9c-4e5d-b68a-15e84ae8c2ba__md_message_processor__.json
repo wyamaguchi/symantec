@@ -1,0 +1,11 @@
+{
+    "inputMessageMetadata": {},
+    "outputMessageMetadata": {
+        "messagePayload": {
+            "connectorName": "CassandraDB__Configuration",
+            "typeId": "request_failures"
+        }
+    },
+    "id": "dfc688c5-fb9c-4e5d-b68a-15e84ae8c2ba",
+    "version": "5.2.0.0"
+}
